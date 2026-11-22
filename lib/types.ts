@@ -1,5 +1,7 @@
 export type Sex = "female" | "male";
 export type WeightUnit = "kg" | "lb" | "st";
+/** How much planned exercise the person has chosen. "none" leaves the whole calorie gap to food. */
+export type ExerciseLevel = "none" | "starting" | "building" | "active";
 export type ActivityLevel = "sedentary" | "light" | "moderate" | "active";
 
 export interface Profile {
@@ -17,6 +19,7 @@ export interface Profile {
   customTarget?: number | null;
   /** The day the person wants to reach their goal by (YYYY-MM-DD), when they chose a date rather than a pace. */
   targetDate?: string | null;
+  exerciseLevel?: ExerciseLevel;
   /** Foods the person has starred for quick logging. */
   favourites?: Favourite[];
   /** Meals and recipes the person has saved to log again in one tap. */

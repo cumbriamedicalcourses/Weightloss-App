@@ -81,8 +81,7 @@ export default function ProgressPage() {
       const date = addDays(weekStart, i);
       const list = week.filter((e) => e.date === date);
       const eaten = list.filter((e) => e.kind === "food").reduce((s, e) => s + e.calories, 0);
-      const burned = list.filter((e) => e.kind === "exercise").reduce((s, e) => s + e.calories, 0);
-      return { date, net: eaten - burned, logged: list.length > 0 };
+      return { date, net: eaten, logged: list.length > 0 };
     });
   }, [week, weekStart]);
 
@@ -200,7 +199,7 @@ export default function ProgressPage() {
             <dd className="mt-0.5 text-lg tabular-nums text-ink">{checkIn.daysLogged} / 7</dd>
           </div>
           <div className="border-x border-line">
-            <dt className="text-xs uppercase tracking-wide text-muted">Net kcal a day</dt>
+            <dt className="text-xs uppercase tracking-wide text-muted">Kcal eaten a day</dt>
             <dd className="mt-0.5 text-lg tabular-nums text-ink">
               {checkIn.daysLogged ? checkIn.averageNet.toLocaleString() : "–"}
             </dd>
@@ -269,7 +268,7 @@ export default function ProgressPage() {
 
       <section className="card mt-4 p-5">
         <h2 className="font-semibold text-ink">Last 7 days</h2>
-        <p className="text-sm text-muted">Calories eaten minus exercise, against your target of {target.toLocaleString()}.</p>
+        <p className="text-sm text-muted">Calories eaten, against your target of {target.toLocaleString()}.</p>
         <div className="relative mt-5">
           <div
             className="absolute inset-x-0 border-t-2 border-dashed border-clay/60"

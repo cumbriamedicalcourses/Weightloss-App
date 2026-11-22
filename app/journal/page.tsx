@@ -69,7 +69,8 @@ export default function TodayPage() {
   const exercise = list.filter((e) => e.kind === "exercise");
   const eaten = food.reduce((s, e) => s + e.calories, 0);
   const burned = exercise.reduce((s, e) => s + e.calories, 0);
-  const allowance = target + burned;
+  // Exercise is part of the plan, so it is not added back to the food allowance.
+  const allowance = target;
   const left = allowance - eaten;
   const over = left < 0;
   const pct = allowance > 0 ? Math.min(100, Math.round((eaten / allowance) * 100)) : 0;
@@ -129,8 +130,8 @@ export default function TodayPage() {
       <section className="mt-4 rounded-2xl bg-leaf px-5 py-4 text-white" aria-label="Your target">
         <div className="flex items-baseline justify-between gap-3">
           <p className="text-sm text-white/80">Your target</p>
-          <Link href="/journal/profile" className="text-sm font-semibold text-white underline underline-offset-4">
-            Change
+          <Link href="/journal/plan" className="text-sm font-semibold text-white underline underline-offset-4">
+            Your plan
           </Link>
         </div>
         {plan.reached ? (
@@ -147,6 +148,7 @@ export default function TodayPage() {
               {formatWeight(plan.toGoKg, unit)} to go
               {plan.paceKg > 0 ? ` · about ${formatWeight(plan.paceKg, unit)} a week` : ""}
               {plan.deficit > 0 ? ` · ${plan.deficit.toLocaleString()} kcal a day below what you burn` : ""}
+              {plan.fromActivity > 0 ? ` (${plan.fromFood} from food, ${plan.fromActivity} from activity)` : ""}
             </p>
           </>
         )}
@@ -182,6 +184,11 @@ export default function TodayPage() {
             <dd className="mt-0.5 text-lg tabular-nums text-leaf">{burned.toLocaleString()}</dd>
           </div>
         </dl>
+        {burned ? (
+          <p className="mt-3 text-xs text-muted">
+            Exercise counts towards your plan and is not added to your food allowance.
+          </p>
+        ) : null}
       </section>
 
       {food.length ? (
