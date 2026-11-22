@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
-import type { EstimateItem, EstimateResult, FoodResult, Meal } from "@/lib/types";
+import { addDays, dayKey } from "@/lib/dates";
+import type { Entry, EstimateItem, EstimateResult, Favourite, FoodResult, Macros, Meal } from "@/lib/types";
 import Sheet from "./sheet";
 
 const MEALS: { id: Meal; label: string }[] = [
@@ -14,8 +15,9 @@ const MEALS: { id: Meal; label: string }[] = [
   { id: "snack", label: "Snack" },
 ];
 
-type Tab = "search" | "photo" | "manual";
+type Tab = "recent" | "search" | "photo" | "manual";
 const TABS: { id: Tab; label: string }[] = [
+  { id: "recent", label: "Recent" },
   { id: "search", label: "Search" },
   { id: "photo", label: "Photo" },
   { id: "manual", label: "Type it in" },
@@ -47,8 +49,26 @@ function ErrorNote({ children }: { children: string }) {
 
 export default function AddFood({ date, onClose }: { date: string; onClose: () => void }) {
   const { getToken } = useAuth();
-  const { user } = useJournal();
+  const { user, profile } = useJournal();
   const [tab, setTab] = useState<Tab>("search");
+  const [recent, setRecent] = useState<Entry[] | null>(null);
+  const favourites = useMemo(() => profile?.favourites ?? [], [profile]);
+
+  // The last month of entries feeds the Recent tab.
+  useEffect(() => {
+    const today = dayKey();
+    return store.watchEntries(user.uid, addDays(today, -30), today, setRecent);
+  }, [user.uid]);
+
+  // Open on Recent once there is something to show there, unless the person
+  // has already picked a tab.
+  const [touched, setTouched] = useState(false);
+  const hasQuick = favourites.length > 0 || Boolean(recent?.some((e) => e.kind === "food"));
+  const shown: Tab = !touched && hasQuick ? "recent" : tab;
+  function pick(t: Tab) {
+    setTouched(true);
+    setTab(t);
+  }
   const [meal, setMeal] = useState<Meal>(mealForNow);
 
   async function call(path: string, init: RequestInit = {}) {
@@ -62,7 +82,7 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
     return data;
   }
 
-  async function save(items: { name: string; calories: number; portion?: string }[], source: Tab) {
+  async function save(items: Item[], source: Entry["source"], keepOpen = false) {
     await Promise.all(
       items.map((i) =>
         store.addEntry(user.uid, {
@@ -72,11 +92,22 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
           name: i.name.trim(),
           calories: Math.round(i.calories),
           portion: i.portion?.trim() || undefined,
+          protein: grams(i.protein),
+          carbs: grams(i.carbs),
+          fat: grams(i.fat),
           source,
         }),
       ),
     );
-    onClose();
+    if (!keepOpen) onClose();
+  }
+
+  function toggleFavourite(item: Item) {
+    const key = itemKey(item);
+    const next = favourites.some((x) => itemKey(x) === key)
+      ? favourites.filter((x) => itemKey(x) !== key)
+      : [{ ...item, name: item.name.trim() }, ...favourites].slice(0, 60);
+    void store.setFavourites(user.uid, next);
   }
 
   return (
@@ -90,16 +121,16 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
         </select>
       </div>
 
-      <div role="tablist" aria-label="How to add" className="mb-5 grid grid-cols-3 gap-1 rounded-xl border border-line bg-card p-1">
+      <div role="tablist" aria-label="How to add" className="mb-5 grid grid-cols-4 gap-1 rounded-xl border border-line bg-card p-1">
         {TABS.map((t) => (
           <button
             key={t.id}
             role="tab"
             type="button"
-            aria-selected={tab === t.id}
-            onClick={() => setTab(t.id)}
+            aria-selected={shown === t.id}
+            onClick={() => pick(t.id)}
             className={`min-h-11 rounded-lg text-sm font-semibold ${
-              tab === t.id ? "bg-leaf text-white" : "text-muted hover:text-ink"
+              shown === t.id ? "bg-leaf text-white" : "text-muted hover:text-ink"
             }`}
           >
             {t.label}
@@ -107,15 +138,143 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
         ))}
       </div>
 
-      {tab === "search" ? <SearchTab call={call} save={(i) => save([i], "search")} /> : null}
-      {tab === "photo" ? <PhotoTab call={call} save={(i) => save(i, "photo")} /> : null}
-      {tab === "manual" ? <ManualTab save={(i) => save([i], "manual")} /> : null}
+      {shown === "recent" ? (
+        <RecentTab
+          favourites={favourites}
+          recent={recent}
+          add={(i) => save([i], "recent", true)}
+          toggleFavourite={toggleFavourite}
+          onDone={onClose}
+        />
+      ) : null}
+      {shown === "search" ? <SearchTab call={call} save={(i) => save([i], "search")} /> : null}
+      {shown === "photo" ? <PhotoTab call={call} save={(i) => save(i, "photo")} /> : null}
+      {shown === "manual" ? <ManualTab save={(i) => save([i], "manual")} /> : null}
     </Sheet>
   );
 }
 
 type Call = (path: string, init?: RequestInit) => Promise<unknown>;
-type Item = { name: string; calories: number; portion?: string };
+type Item = Favourite;
+
+/** Keeps a macro figure only when it is a real, non-negative number. */
+function grams(v: number | undefined) {
+  return typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.round(v * 10) / 10 : undefined;
+}
+
+/** Two entries are the same food when name, portion and calories all match. */
+function itemKey(i: Item) {
+  return `${i.name.trim().toLowerCase()}|${(i.portion ?? "").trim().toLowerCase()}|${Math.round(i.calories)}`;
+}
+
+function macroLine(m: Macros) {
+  if (m.protein === undefined && m.carbs === undefined && m.fat === undefined) return "";
+  return `Protein ${Math.round(m.protein ?? 0)} g · Carbs ${Math.round(m.carbs ?? 0)} g · Fat ${Math.round(m.fat ?? 0)} g`;
+}
+
+function RecentTab({
+  favourites,
+  recent,
+  add,
+  toggleFavourite,
+  onDone,
+}: {
+  favourites: Favourite[];
+  recent: Entry[] | null;
+  add: (i: Item) => Promise<void>;
+  toggleFavourite: (i: Item) => void;
+  onDone: () => void;
+}) {
+  const [filter, setFilter] = useState("");
+  const [added, setAdded] = useState<Record<string, number>>({});
+
+  const favKeys = useMemo(() => new Set(favourites.map(itemKey)), [favourites]);
+  const recents = useMemo(() => {
+    const seen = new Set(favKeys);
+    const list: Item[] = [];
+    for (const e of [...(recent ?? [])].sort((a, b) => b.createdAt - a.createdAt)) {
+      if (e.kind !== "food") continue;
+      const item: Item = { name: e.name, calories: e.calories, portion: e.portion, protein: e.protein, carbs: e.carbs, fat: e.fat };
+      const key = itemKey(item);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      list.push(item);
+      if (list.length >= 40) break;
+    }
+    return list;
+  }, [recent, favKeys]);
+
+  const term = filter.trim().toLowerCase();
+  const match = (i: Item) => !term || i.name.toLowerCase().includes(term);
+  const groups = [
+    { title: "Favourites", items: favourites.filter(match) },
+    { title: "Recent", items: recents.filter(match) },
+  ].filter((g) => g.items.length);
+  const count = Object.values(added).reduce((s, n) => s + n, 0);
+
+  if (!favourites.length && !recents.length) {
+    return (
+      <p className="text-sm text-muted">
+        {recent ? "Foods you log will appear here, so next time you can add them with one tap. Start with Search, Photo or Type it in." : "Loading…"}
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="label" htmlFor="recent-filter">Find in your foods</label>
+        <input id="recent-filter" className="field" autoComplete="off" value={filter} onChange={(e) => setFilter(e.target.value)} />
+      </div>
+      {!groups.length ? <p className="text-sm text-muted">Nothing matches “{filter.trim()}”. Try Search instead.</p> : null}
+      {groups.map((g) => (
+        <section key={g.title}>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{g.title}</h3>
+          <ul className="card mt-2 divide-y divide-line overflow-hidden">
+            {g.items.map((i) => {
+              const key = itemKey(i);
+              const isFav = favKeys.has(key);
+              return (
+                <li key={key} className="flex items-stretch">
+                  <button
+                    type="button"
+                    aria-label={isFav ? `Remove ${i.name} from favourites` : `Add ${i.name} to favourites`}
+                    aria-pressed={isFav}
+                    className={`flex w-12 shrink-0 items-center justify-center text-xl ${isFav ? "text-clay" : "text-muted hover:text-clay"}`}
+                    onClick={() => toggleFavourite(i)}
+                  >
+                    {isFav ? "★" : "☆"}
+                  </button>
+                  <button
+                    type="button"
+                    className="flex min-w-0 flex-1 items-center justify-between gap-3 py-3 pr-4 text-left hover:bg-leaf-soft"
+                    onClick={() => {
+                      setAdded((a) => ({ ...a, [key]: (a[key] ?? 0) + 1 }));
+                      void add(i);
+                    }}
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-ink">{i.name}</span>
+                      {i.portion ? <span className="block truncate text-sm text-muted">{i.portion}</span> : null}
+                    </span>
+                    <span className="shrink-0 text-sm tabular-nums text-muted">
+                      {added[key] ? <span className="mr-2 font-semibold text-leaf">Added{added[key] > 1 ? ` ×${added[key]}` : ""}</span> : null}
+                      {i.calories} kcal
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
+      <p className="text-sm text-muted">Tap a food to add it. Tap the star to keep it in your favourites.</p>
+      <button type="button" className="btn w-full" onClick={onDone}>
+        {count ? `Done, ${count} added` : "Done"}
+      </button>
+    </div>
+  );
+}
 
 function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void> }) {
   const [q, setQ] = useState("");
@@ -152,6 +311,12 @@ function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void
   if (picked) {
     const g = Number(grams) || 0;
     const calories = Math.round((picked.kcalPer100g * g) / 100);
+    const scale = (per100?: number) => (per100 === undefined ? undefined : Math.round(per100 * g) / 100);
+    const macros: Macros = {
+      protein: scale(picked.proteinPer100g),
+      carbs: scale(picked.carbsPer100g),
+      fat: scale(picked.fatPer100g),
+    };
     return (
       <div className="space-y-4">
         <div>
@@ -179,13 +344,14 @@ function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void
         <p className="font-display text-3xl tabular-nums text-ink">
           {calories} <span className="text-base text-muted">kcal</span>
         </p>
+        {macroLine(macros) ? <p className="text-sm text-muted">{macroLine(macros)}</p> : null}
         <div className="flex gap-3">
           <button type="button" className="btn-quiet flex-1" onClick={() => setPicked(null)}>Back</button>
           <button
             type="button"
             className="btn flex-1"
             disabled={g <= 0}
-            onClick={() => void save({ name: picked.name, calories, portion: `${g} g` })}
+            onClick={() => void save({ name: picked.name, calories, portion: `${g} g`, ...macros })}
           >
             Add to journal
           </button>
@@ -331,6 +497,7 @@ function PhotoTab({ call, save }: { call: Call; save: (i: Item[]) => Promise<voi
                           onChange={(e) => setItems((l) => l.map((x) => (x.key === item.key ? { ...x, name: e.target.value } : x)))}
                         />
                         <p className="text-sm text-muted">{item.portion}</p>
+                        {macroLine(item) ? <p className="text-sm text-muted">{macroLine(item)}</p> : null}
                       </div>
                       <input
                         aria-label={`Calories for ${item.name}`}
@@ -391,10 +558,19 @@ function ManualTab({ save }: { save: (i: Item) => Promise<void> }) {
   const [name, setName] = useState("");
   const [portion, setPortion] = useState("");
   const [calories, setCalories] = useState("");
+  const [macros, setMacros] = useState({ protein: "", carbs: "", fat: "" });
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    void save({ name, portion, calories: Number(calories) });
+    const g = (v: string) => (v.trim() === "" ? undefined : Number(v));
+    void save({
+      name,
+      portion,
+      calories: Number(calories),
+      protein: g(macros.protein),
+      carbs: g(macros.carbs),
+      fat: g(macros.fat),
+    });
   }
 
   return (
@@ -419,6 +595,25 @@ function ManualTab({ save }: { save: (i: Item) => Promise<void> }) {
           onChange={(e) => setCalories(e.target.value.replace(/\D/g, ""))}
         />
       </div>
+      <details>
+        <summary className="min-h-11 cursor-pointer py-2.5 text-sm font-semibold text-leaf">
+          Add protein, carbs and fat (optional)
+        </summary>
+        <div className="mt-2 grid grid-cols-3 gap-3">
+          {(["protein", "carbs", "fat"] as const).map((k) => (
+            <div key={k}>
+              <label className="label" htmlFor={`m-${k}`}>{k === "protein" ? "Protein" : k === "carbs" ? "Carbs" : "Fat"} (g)</label>
+              <input
+                id={`m-${k}`}
+                className="field"
+                inputMode="decimal"
+                value={macros[k]}
+                onChange={(e) => setMacros((m) => ({ ...m, [k]: e.target.value.replace(/[^0-9.]/g, "") }))}
+              />
+            </div>
+          ))}
+        </div>
+      </details>
       <button className="btn w-full" disabled={!name.trim() || !calories}>Add to journal</button>
     </form>
   );

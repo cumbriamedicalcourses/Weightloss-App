@@ -22,6 +22,11 @@ function kcalPer100g(food: UsdaFood) {
   return null;
 }
 
+function gramsPer100g(food: UsdaFood, id: number) {
+  const v = food.foodNutrients?.find((x) => x.nutrientId === id)?.value;
+  return v === undefined ? undefined : Math.round(v * 10) / 10;
+}
+
 /** Food search backed by USDA FoodData Central. */
 export async function GET(req: Request) {
   if (!(await verifyRequest(req))) {
@@ -66,7 +71,16 @@ export async function GET(req: Request) {
       .filter((m) => m.disseminationText && m.gramWeight && m.disseminationText !== "Quantity not specified")
       .slice(0, 4)
       .map((m) => ({ label: m.disseminationText as string, grams: m.gramWeight as number }));
-    foods.push({ id: String(f.fdcId), name: f.description, kcalPer100g: Math.round(kcal), measures });
+    foods.push({
+      id: String(f.fdcId),
+      name: f.description,
+      kcalPer100g: Math.round(kcal),
+      // USDA nutrient ids: 1003 protein, 1005 carbohydrate, 1004 total fat.
+      proteinPer100g: gramsPer100g(f, 1003),
+      carbsPer100g: gramsPer100g(f, 1005),
+      fatPer100g: gramsPer100g(f, 1004),
+      measures,
+    });
   }
   return NextResponse.json({ foods });
 }

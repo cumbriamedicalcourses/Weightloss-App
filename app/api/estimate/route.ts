@@ -11,13 +11,16 @@ const Estimate = z.object({
       name: z.string().describe("Short plain name of the food or drink, e.g. 'Grilled chicken breast'"),
       portion: z.string().describe("Estimated amount in everyday terms with grams or ml, e.g. '1 fillet (about 150 g)'"),
       calories: z.number().describe("Estimated kilocalories for this portion"),
+      protein: z.number().describe("Estimated grams of protein in this portion"),
+      carbs: z.number().describe("Estimated grams of carbohydrate in this portion"),
+      fat: z.number().describe("Estimated grams of fat in this portion"),
     }),
   ),
   confidence: z.enum(["low", "medium", "high"]),
   notes: z.string().describe("One short sentence on what most affects the estimate, or why no food was found"),
 });
 
-const SYSTEM = `You estimate calories from a photo of a meal for a weight loss journal. The person will review and edit your estimate before saving it, so give your honest best estimate rather than a range.
+const SYSTEM = `You estimate calories, protein, carbohydrate and fat from a photo of a meal for a weight loss journal. The person will review and edit your estimate before saving it, so give your honest best estimate rather than a range.
 
 List each distinct food or drink you can see as its own item. Judge portion size from the plate, cutlery, hands or packaging in view. Include cooking fats, dressings and sauces when the food looks like it was prepared with them, because these are the calories people most often miss. If a nutrition label or brand is readable, use it.
 
@@ -110,7 +113,13 @@ export async function POST(req: Request) {
     }
     const result: EstimateResult = {
       ...parsed,
-      items: parsed.items.map((i) => ({ ...i, calories: Math.max(0, Math.round(i.calories)) })),
+      items: parsed.items.map((i) => ({
+        ...i,
+        calories: Math.max(0, Math.round(i.calories)),
+        protein: Math.max(0, Math.round(i.protein)),
+        carbs: Math.max(0, Math.round(i.carbs)),
+        fat: Math.max(0, Math.round(i.fat)),
+      })),
     };
     return NextResponse.json(result);
   } catch (err) {
