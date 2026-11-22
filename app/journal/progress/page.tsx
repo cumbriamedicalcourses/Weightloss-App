@@ -1,6 +1,7 @@
 "use client";
 
 import MeasurementsCard from "@/components/measurements-card";
+import ProgressPhotos from "@/components/progress-photos";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { WeightInput } from "@/components/weight-input";
 import { UNIT_NAME, bmi, formatWeight, proteinTarget, toDisplayWeight, weightParts } from "@/lib/calc";
@@ -268,6 +269,8 @@ export default function ProgressPage() {
       </section>
 
       <MeasurementsCard />
+
+      <ProgressPhotos />
 
       <section className="card mt-4 p-5">
         <h2 className="font-semibold text-ink">Last 7 days</h2>
