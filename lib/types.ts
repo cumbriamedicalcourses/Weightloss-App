@@ -15,6 +15,8 @@ export interface Profile {
   weightUnit: WeightUnit;
   /** Optional manual override of the calculated daily target. */
   customTarget?: number | null;
+  /** The day the person wants to reach their goal by (YYYY-MM-DD), when they chose a date rather than a pace. */
+  targetDate?: string | null;
   /** Foods the person has starred for quick logging. */
   favourites?: Favourite[];
   /** Meals and recipes the person has saved to log again in one tap. */

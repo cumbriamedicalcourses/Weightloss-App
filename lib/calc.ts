@@ -42,6 +42,43 @@ export function dailyTarget(p: Profile, weightKg: number, year: number) {
   return Math.round(Math.max(target, safeFloor(p.sex)) / 10) * 10;
 }
 
+/** The fastest loss the journal will plan for, in kg a week. */
+export const MAX_PACE_KG = 1;
+export const HEALTHY_BMI = { min: 18.5, max: 24.9 };
+
+/** The weights that give a healthy BMI at this height. */
+export function healthyRange(heightCm: number) {
+  const m2 = (heightCm / 100) ** 2;
+  return { minKg: HEALTHY_BMI.min * m2, maxKg: HEALTHY_BMI.max * m2 };
+}
+
+/**
+ * Goal weights worth offering: a first target of 5% or 10% of body weight,
+ * which is where most of the health benefit comes, and the top of the healthy
+ * range. Nothing is suggested to someone already in the healthy range.
+ */
+export function goalSuggestions(currentKg: number, heightCm: number) {
+  const { maxKg } = healthyRange(heightCm);
+  if (!(currentKg > maxKg)) return [];
+  const round = (kg: number) => Math.round(kg * 2) / 2;
+  const list = [
+    { label: "Lose 5%", kg: round(currentKg * 0.95) },
+    { label: "Lose 10%", kg: round(currentKg * 0.9) },
+    { label: "Healthy range", kg: Math.floor(maxKg * 2) / 2 },
+  ].filter((s) => s.kg >= Math.floor(maxKg * 2) / 2);
+  return list.filter((s, i) => list.findIndex((x) => x.kg === s.kg) === i);
+}
+
+/** Kilograms a week needed to go from one weight to another by a date. */
+export function paceForDate(fromKg: number, toKg: number, days: number) {
+  return days > 0 ? ((fromKg - toKg) / days) * 7 : Infinity;
+}
+
+/** The daily calorie gap that a weekly pace amounts to. */
+export function deficitForPace(paceKg: number) {
+  return (paceKg * KCAL_PER_KG) / 7;
+}
+
 /** Exercise energy: MET x body weight (kg) x hours. */
 export function exerciseCalories(met: number, weightKg: number, minutes: number) {
   return Math.round(met * weightKg * (minutes / 60));

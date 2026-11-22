@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import AddExercise from "@/components/add-exercise";
 import AddDrink from "@/components/add-drink";
 import AddFood from "@/components/add-food";
 import SaveMeal from "@/components/save-meal";
-import { addDays, dayKey, friendlyDay } from "@/lib/dates";
-import { proteinTarget } from "@/lib/calc";
+import { addDays, dayKey, friendlyDay, parseDay } from "@/lib/dates";
+import { target as planTarget } from "@/lib/target";
+import { formatWeight, proteinTarget } from "@/lib/calc";
 import { WATER_GOAL, totalUnits } from "@/lib/drinks";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
@@ -72,6 +74,8 @@ export default function TodayPage() {
   const over = left < 0;
   const pct = allowance > 0 ? Math.min(100, Math.round((eaten / allowance) * 100)) : 0;
   const isToday = date === dayKey();
+  const unit = profile.weightUnit;
+  const plan = planTarget(profile, currentKg, dayKey());
 
   const sum = (k: "protein" | "carbs" | "fat") => Math.round(food.reduce((s, e) => s + (e[k] ?? 0), 0));
   const protein = sum("protein");
@@ -121,6 +125,32 @@ export default function TodayPage() {
           ›
         </button>
       </div>
+
+      <section className="mt-4 rounded-2xl bg-leaf px-5 py-4 text-white" aria-label="Your target">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm text-white/80">Your target</p>
+          <Link href="/journal/profile" className="text-sm font-semibold text-white underline underline-offset-4">
+            Change
+          </Link>
+        </div>
+        {plan.reached ? (
+          <p className="mt-1 font-display text-2xl">You have reached {formatWeight(profile.goalWeightKg, unit)}. Well done.</p>
+        ) : (
+          <>
+            <p className="mt-1 font-display text-2xl">
+              {formatWeight(profile.goalWeightKg, unit)}
+              {plan.date
+                ? ` by ${parseDay(plan.date).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}`
+                : ""}
+            </p>
+            <p className="mt-1 text-sm text-white/90">
+              {formatWeight(plan.toGoKg, unit)} to go
+              {plan.paceKg > 0 ? ` · about ${formatWeight(plan.paceKg, unit)} a week` : ""}
+              {plan.deficit > 0 ? ` · ${plan.deficit.toLocaleString()} kcal a day below what you burn` : ""}
+            </p>
+          </>
+        )}
+      </section>
 
       <section className="card mt-4 p-5" aria-label="Calories for the day">
         <p className="text-sm text-muted">{over ? "Over today's target by" : "Left today"}</p>
