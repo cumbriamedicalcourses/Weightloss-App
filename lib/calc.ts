@@ -1,3 +1,4 @@
+import { weeklyExtraKcal } from "./exercise-plan";
 import type { ActivityLevel, Profile, WeightUnit } from "./types";
 
 export const KG_PER_LB = 0.45359237;
@@ -35,6 +36,15 @@ export function safeFloor(sex: Profile["sex"]) {
   return sex === "male" ? 1500 : 1200;
 }
 
+/**
+ * Roughly what the exercise plan burns a day, averaged over the week. It is
+ * purely extra: the food target does not move because of it.
+ */
+export function activityExtra(p: Profile, weightKg: number) {
+  return Math.max(0, weeklyExtraKcal(p.exerciseLevel, weightKg) / 7);
+}
+
+/** Calories to eat in a day. Food alone carries the planned gap; exercise is never added back. */
 export function dailyTarget(p: Profile, weightKg: number, year: number) {
   if (p.customTarget && p.customTarget > 0) return Math.round(p.customTarget);
   const deficit = (p.pacePerWeekKg * KCAL_PER_KG) / 7;

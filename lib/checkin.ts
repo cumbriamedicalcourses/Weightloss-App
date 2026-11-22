@@ -3,7 +3,7 @@ import type { Entry, WeightLog } from "./types";
 
 export interface CheckIn {
   daysLogged: number;
-  /** Average calories eaten minus exercise, over the days with food logged. */
+  /** Average calories eaten, over the days with food logged. */
   averageNet: number;
   averageProtein: number;
   exerciseMinutes: number;
@@ -37,8 +37,7 @@ export function weeklyCheckIn(input: {
   const foodDays = new Set(food.map((e) => e.date));
   const daysLogged = foodDays.size;
   const eaten = food.reduce((s, e) => s + e.calories, 0);
-  const burned = exercise.filter((e) => foodDays.has(e.date)).reduce((s, e) => s + e.calories, 0);
-  const averageNet = daysLogged ? Math.round((eaten - burned) / daysLogged) : 0;
+  const averageNet = daysLogged ? Math.round(eaten / daysLogged) : 0;
   const withProtein = food.filter((e) => e.protein !== undefined);
   const averageProtein = daysLogged ? Math.round(withProtein.reduce((s, e) => s + (e.protein ?? 0), 0) / daysLogged) : 0;
   const proteinKnown = food.length > 0 && withProtein.length >= food.length / 2;
@@ -57,7 +56,7 @@ export function weeklyCheckIn(input: {
   const wentWell: string[] = [];
   if (daysLogged >= 5) wentWell.push(`You kept your journal on ${daysLogged} of the last 7 days.`);
   if (daysLogged >= 3 && averageNet <= target + 50 && averageNet >= 1000) {
-    wentWell.push(`You averaged ${averageNet.toLocaleString()} kcal a day after exercise, within your target of ${target.toLocaleString()}.`);
+    wentWell.push(`You averaged ${averageNet.toLocaleString()} kcal a day, within your target of ${target.toLocaleString()}.`);
   }
   if (weightChangeKg !== null && weightChangeKg < 0) {
     wentWell.push(`Your weight is down ${formatWeight(-weightChangeKg)} on last week.`);
@@ -76,7 +75,7 @@ export function weeklyCheckIn(input: {
   } else if (averageNet < 1000) {
     suggestion = "Your intake looks very low. Eating too little is hard to keep up and can cost you muscle, so aim closer to your target this week.";
   } else if (averageNet > target + 100) {
-    suggestion = `After exercise, you averaged ${(averageNet - target).toLocaleString()} kcal a day over your target. Find the day that ran highest and plan that meal ahead this week.`;
+    suggestion = `You averaged ${(averageNet - target).toLocaleString()} kcal a day over your target. Find the day that ran highest and plan that meal ahead this week.`;
   } else if (weightChangeKg !== null && weightChangeKg < -1.5) {
     suggestion = "You are losing weight quickly. If you feel tired or very hungry, ease the pace a little in your profile.";
   } else if (proteinKnown && averageProtein < proteinGoal * 0.7) {

@@ -21,9 +21,10 @@ import {
   safeFloor,
 } from "@/lib/calc";
 import { addDays, dayKey, parseDay } from "@/lib/dates";
+import { LEVELS } from "@/lib/exercise-plan";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
-import type { ActivityLevel, Profile, Sex, WeightUnit } from "@/lib/types";
+import type { ActivityLevel, ExerciseLevel, Profile, Sex, WeightUnit } from "@/lib/types";
 
 const PACES = [
   { kg: 0.25, label: "Gentle", detail: "about ¼ kg (½ lb) a week" },
@@ -47,6 +48,7 @@ export default function ProfilePage() {
   const [goalKg, setGoalKg] = useState<number | null>(profile ? profile.goalWeightKg : null);
   const [activity, setActivity] = useState<ActivityLevel>(profile?.activity ?? "light");
   const [pace, setPace] = useState(profile?.pacePerWeekKg ?? 0.5);
+  const [exercise, setExercise] = useState<ExerciseLevel>(profile?.exerciseLevel ?? "none");
   const [byDate, setByDate] = useState(Boolean(profile?.targetDate));
   const [targetDate, setTargetDate] = useState(profile?.targetDate ?? "");
   const [goalKey, setGoalKey] = useState(0);
@@ -78,6 +80,7 @@ export default function ProfilePage() {
       activity,
       pacePerWeekKg: plannedPace,
       targetDate: byDate && targetDate ? targetDate : null,
+      exerciseLevel: exercise,
       weightUnit: unit,
       customTarget: custom ? Number(custom) : null,
     };
@@ -238,6 +241,9 @@ export default function ProfilePage() {
           <div className="rounded-xl bg-leaf-soft px-3.5 py-3" aria-live="polite">
             <p className="text-sm text-ink">
               A healthy weight for your height is {formatWeight(range.minKg, unit)} to {formatWeight(range.maxKg, unit)}.
+              {" "}For people of South Asian, Chinese, other Asian, Middle Eastern, Black African or African-Caribbean
+              family background, health risks rise at a lower weight, so aim for {formatWeight(23 * (Number(height) / 100) ** 2, unit)} or
+              less.
               {ideas.length ? " A first target of 5 to 10% is a good place to start. Tap one to use it:" : ""}
             </p>
             {ideas.length ? (
@@ -308,6 +314,25 @@ export default function ProfilePage() {
               </div>
             ) : null}
           </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="label">Exercise plan</legend>
+          <div className="space-y-2">
+            {LEVELS.map((l) => (
+              <label key={l.id} className={`card flex cursor-pointer items-center gap-3 px-4 py-3 ${exercise === l.id ? "border-leaf ring-2 ring-leaf/25" : ""}`}>
+                <input type="radio" name="exercise" className="size-4 accent-leaf" checked={exercise === l.id} onChange={() => setExercise(l.id)} />
+                <span>
+                  <span className="font-semibold text-ink">{l.label}</span>
+                  <span className="text-muted">, {l.detail}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-1.5 text-sm text-muted">
+            Exercise is a bonus on top of your food target. It does not change how much you eat, and exercise you log
+            is not added back to your food allowance.
+          </p>
         </fieldset>
 
         <section className="card p-5" aria-live="polite">
