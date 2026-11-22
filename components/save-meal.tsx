@@ -45,6 +45,7 @@ export default function SaveMeal({
         protein: x.protein,
         carbs: x.carbs,
         fat: x.fat,
+        units: x.units,
       })),
     };
     void store.setSavedMeals(uid, [meal, ...others]);
