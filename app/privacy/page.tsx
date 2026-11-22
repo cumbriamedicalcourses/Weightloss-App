@@ -26,6 +26,7 @@ const BODY: Block[] = [
     "Google Firebase stores your account and your journal, and provides sign-in. Google may process account information in the United States and other countries under its standard legal safeguards.",
     "Hostinger hosts the website.",
     "Anthropic provides the service that estimates calories from a photo or a description. The photo or text is sent for that purpose without your name or email address.",
+    "Anthropic also writes the answers when you ask the coach a question. Your question, the recent messages in that chat and a summary of your journal (such as your age, height, weights, daily calorie totals, exercise and today's food) are sent for that purpose without your name or email address. The chat itself is kept only in the browser on your own device. We keep a count of how many questions each account asks in a day, to keep costs under control.",
     "USDA FoodData Central provides the food search. Only the words you search for are sent.",
     "Reminder emails are sent only if you switch them on in your Profile, to the email address you signed in with, from our own mailbox at Hostinger. Every email has a link to stop them.",
     "Open Food Facts provides the barcode lookup. Only the barcode number is sent. The camera picture used to read the barcode stays on your device.",
