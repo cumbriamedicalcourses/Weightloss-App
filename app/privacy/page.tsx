@@ -26,6 +26,7 @@ const BODY: Block[] = [
     "Hostinger hosts the website.",
     "Anthropic provides the service that estimates calories from a photo or a description. The photo or text is sent for that purpose without your name or email address.",
     "USDA FoodData Central provides the food search. Only the words you search for are sent.",
+    "Open Food Facts provides the barcode lookup. Only the barcode number is sent. The camera picture used to read the barcode stays on your device.",
   ] },
   { h: "What is kept on your device" },
   { p: "Your browser keeps you signed in and holds a copy of your journal so that it works without a connection. It also remembers your choice of meal plan. We do not use advertising or tracking cookies, and we do not use analytics that follow you around the web." },
