@@ -2,6 +2,7 @@
 
 import { nudgeFor, remindersOf } from "@/lib/reminders";
 import Link from "next/link";
+import { StepsToday } from "@/components/steps-card";
 import { useEffect, useState } from "react";
 import AddExercise from "@/components/add-exercise";
 import AddDrink from "@/components/add-drink";
@@ -330,6 +331,8 @@ export default function TodayPage() {
           </button>
         </div>
       </section>
+
+      <StepsToday key={date} date={date} />
 
       {entries && !list.length ? (
         <p className="mt-10 text-center text-muted">
