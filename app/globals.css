@@ -62,3 +62,13 @@ dialog.sheet::backdrop {
     }
   }
 }
+
+/* Printed pages, such as the GP report, are plain black on white. */
+@media print {
+  body {
+    background: #fff !important;
+  }
+  @page {
+    margin: 16mm;
+  }
+}
