@@ -8,6 +8,7 @@ import { JournalProvider, useJournal } from "@/lib/journal";
 
 const TABS = [
   { href: "/journal", label: "Today" },
+  { href: "/journal/plans", label: "Plans" },
   { href: "/journal/progress", label: "Progress" },
   { href: "/journal/profile", label: "Profile" },
 ];

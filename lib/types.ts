@@ -45,7 +45,7 @@ export interface Entry extends Macros {
   /** Free-text portion, e.g. "150 g" or "1 bowl". */
   portion?: string;
   minutes?: number;
-  source?: "search" | "photo" | "manual" | "recent" | "copy";
+  source?: "search" | "photo" | "manual" | "recent" | "copy" | "plan";
   createdAt: number;
 }
 
