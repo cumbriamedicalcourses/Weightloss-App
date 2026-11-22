@@ -28,6 +28,17 @@ export interface Profile {
   savedMeals?: SavedMeal[];
   /** Glasses of water drunk, by day (YYYY-MM-DD). */
   water?: Record<string, number>;
+  /** Body measurements in centimetres, by day (YYYY-MM-DD). */
+  measurements?: Record<string, Measurement>;
+}
+
+/** Tape measurements in centimetres. Any of them can be left out. */
+export interface Measurement {
+  waist?: number;
+  hips?: number;
+  chest?: number;
+  thigh?: number;
+  arm?: number;
 }
 
 /** Protein, carbohydrate and fat in grams. Missing when not known. */
