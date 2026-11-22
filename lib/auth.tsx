@@ -112,6 +112,11 @@ export function authMessage(err: unknown) {
       return "";
     case "auth/network-request-failed":
       return "No connection. Check your internet and try again.";
+    case "auth/configuration-not-found":
+    case "auth/operation-not-allowed":
+      return "This way of signing in isn't switched on yet. Please try again later.";
+    case "auth/unauthorized-domain":
+      return "Sign-in isn't set up for this web address yet. Please try again later.";
     case "auth/too-many-requests":
       return "Too many attempts. Wait a few minutes and try again.";
     default:
