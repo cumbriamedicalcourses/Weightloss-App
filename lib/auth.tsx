@@ -3,6 +3,7 @@
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
+  deleteUser,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -31,6 +32,10 @@ interface AuthState {
   signInGoogle(): Promise<void>;
   resetPassword(email: string): Promise<void>;
   signOut(): Promise<void>;
+  /** Removes the sign-in account itself. Delete the journal data first. */
+  deleteAccount(): Promise<void>;
+  /** Firebase only lets an account be deleted shortly after signing in. */
+  signedInRecently(): boolean;
 }
 
 const PREVIEW_USER: SessionUser = { uid: "preview", email: null, name: null };
@@ -79,6 +84,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       async signOut() {
         if (firebaseEnabled) await fbSignOut(firebaseAuth());
+      },
+      signedInRecently() {
+        const current = firebaseEnabled ? firebaseAuth().currentUser : null;
+        if (!current) return true;
+        const last = Date.parse(current.metadata.lastSignInTime ?? "");
+        return Number.isFinite(last) && Date.now() - last < 4 * 60 * 1000;
+      },
+      async deleteAccount() {
+        const current = firebaseEnabled ? firebaseAuth().currentUser : null;
+        if (current) await deleteUser(current);
       },
     }),
     [user, loading],

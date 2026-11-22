@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
@@ -100,6 +101,46 @@ export default function ProfilePage() {
     }
     if (isNew) router.replace("/journal");
     else setSaved(true);
+  }
+
+  const [confirming, setConfirming] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [dataBusy, setDataBusy] = useState(false);
+  const [dataError, setDataError] = useState("");
+
+  async function download() {
+    setDataError("");
+    setDataBusy(true);
+    try {
+      const data = await store.exportAll(user.uid);
+      const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `my-weight-loss-journal-${dayKey()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setDataError("Your data couldn't be gathered. Check your connection and try again.");
+    } finally {
+      setDataBusy(false);
+    }
+  }
+
+  async function deleteEverything() {
+    setDataError("");
+    if (!auth.signedInRecently()) {
+      setDataError("For your security, sign out, sign in again, and then delete your account within a few minutes.");
+      return;
+    }
+    setDataBusy(true);
+    try {
+      await store.deleteAll(user.uid);
+      await auth.deleteAccount();
+      router.replace("/");
+    } catch {
+      setDataError("Something stopped the deletion part way. Sign out, sign in again and press delete once more to finish.");
+      setDataBusy(false);
+    }
   }
 
   const toggle = (active: boolean) =>
@@ -214,6 +255,65 @@ export default function ProfilePage() {
 
         <button className="btn w-full">{isNew ? "Open my journal" : "Save profile"}</button>
       </form>
+
+      {!isNew ? (
+        <section className="mt-10 border-t border-line pt-6" aria-label="Your data">
+          <h2 className="font-semibold text-ink">Your data</h2>
+          <p className="mt-1 text-sm text-muted">
+            Your journal belongs to you. You can take a copy or remove it at any time. See the{" "}
+            <Link href="/privacy" className="font-semibold text-leaf underline-offset-4 hover:underline">privacy policy</Link>.
+          </p>
+          <button type="button" className="btn-quiet mt-3 w-full" disabled={dataBusy} onClick={() => void download()}>
+            Download my data
+          </button>
+          {!confirming ? (
+            <button
+              type="button"
+              className="mt-3 min-h-11 w-full text-sm font-semibold text-clay hover:underline"
+              onClick={() => setConfirming(true)}
+            >
+              Delete my account and data
+            </button>
+          ) : (
+            <div className="mt-4 rounded-xl bg-clay-soft p-4">
+              <p className="text-sm text-ink">
+                This permanently removes your profile, every food and exercise entry, every weigh-in and your sign-in.
+                It cannot be undone.
+              </p>
+              <label className="label mt-3" htmlFor="confirm-delete">Type DELETE to confirm</label>
+              <input
+                id="confirm-delete"
+                className="field"
+                autoComplete="off"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+              />
+              <div className="mt-3 flex gap-3">
+                <button
+                  type="button"
+                  className="btn-quiet flex-1"
+                  onClick={() => {
+                    setConfirming(false);
+                    setConfirmText("");
+                    setDataError("");
+                  }}
+                >
+                  Keep my account
+                </button>
+                <button
+                  type="button"
+                  className="btn flex-1 !bg-clay"
+                  disabled={dataBusy || confirmText.trim().toUpperCase() !== "DELETE"}
+                  onClick={() => void deleteEverything()}
+                >
+                  {dataBusy ? "Deleting…" : "Delete everything"}
+                </button>
+              </div>
+            </div>
+          )}
+          {dataError ? <p className="mt-3 rounded-xl bg-clay-soft px-3.5 py-3 text-sm text-clay" role="alert">{dataError}</p> : null}
+        </section>
+      ) : null}
 
       {!auth.preview ? (
         <div className="mt-10 border-t border-line pt-6">
