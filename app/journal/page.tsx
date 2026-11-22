@@ -280,6 +280,17 @@ export default function TodayPage() {
         <button type="button" className="btn-quiet" onClick={() => setSheet("exercise")}>Add exercise</button>
       </div>
 
+      <Link
+        href="/journal/coach"
+        className="card mt-3 flex items-center justify-between gap-3 p-4 transition hover:border-leaf"
+      >
+        <span>
+          <span className="block font-semibold text-ink">Ask your coach</span>
+          <span className="block text-sm text-muted">Questions answered using your own journal</span>
+        </span>
+        <span aria-hidden className="text-xl text-leaf">›</span>
+      </Link>
+
       <section className="card mt-3 p-4" aria-label="Water and alcohol for the day">
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">

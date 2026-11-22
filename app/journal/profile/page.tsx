@@ -178,6 +178,11 @@ export default function ProfilePage() {
     try {
       await store.deleteAll(user.uid);
       await deleteAllPhotos(user.uid).catch(() => {});
+      try {
+        localStorage.removeItem(`wlj:coach:${user.uid}`);
+      } catch {
+        // Nothing to remove when the browser blocks storage.
+      }
       await auth.deleteAccount();
       router.replace("/");
     } catch {
