@@ -7,6 +7,7 @@ import { store } from "@/lib/store";
 import { addDays, dayKey } from "@/lib/dates";
 import { servingOf } from "@/lib/saved-meals";
 import type { Entry, EstimateItem, EstimateResult, Favourite, FoodResult, Macros, Meal, SavedMeal } from "@/lib/types";
+import BarcodeScanner from "./barcode-scanner";
 import Sheet from "./sheet";
 
 const MEALS: { id: Meal; label: string }[] = [
@@ -346,6 +347,26 @@ function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void
   const [error, setError] = useState("");
   const [picked, setPicked] = useState<FoodResult | null>(null);
   const [grams, setGrams] = useState("100");
+  const [scanning, setScanning] = useState(false);
+
+  function choose(f: FoodResult) {
+    setPicked(f);
+    setGrams(f.measures[0] ? String(Math.round(f.measures[0].grams)) : "100");
+  }
+
+  async function lookUp(code: string) {
+    setScanning(false);
+    setBusy(true);
+    setError("");
+    try {
+      const data = (await call(`/api/barcode?code=${code}`)) as { food: FoodResult };
+      choose(data.food);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
     const term = q.trim();
@@ -423,9 +444,17 @@ function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void
     );
   }
 
+  if (scanning) return <BarcodeScanner onCode={(code) => void lookUp(code)} onCancel={() => setScanning(false)} />;
+
   const term = q.trim();
   return (
     <div className="space-y-4">
+      <button type="button" className="btn-quiet w-full" onClick={() => setScanning(true)}>
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="mr-2 inline h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M4 6v12M8 6v12M11 6v12M15 6v12M18 6v12M20.5 6v12" />
+        </svg>
+        Scan a barcode
+      </button>
       <div>
         <label className="label" htmlFor="food-search">Search for a food</label>
         <input
@@ -438,7 +467,7 @@ function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void
         />
       </div>
       {error ? <ErrorNote>{error}</ErrorNote> : null}
-      {busy && !foods ? <p className="text-sm text-muted" role="status">Searching…</p> : null}
+      {busy && !foods ? <p className="text-sm text-muted" role="status">Looking it up…</p> : null}
       {term.length >= 2 && foods && !foods.length && !busy && !error ? (
         <p className="text-sm text-muted">
           No match for “{term}”. Try a simpler name, or use Type it in.
@@ -451,10 +480,7 @@ function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void
               <button
                 type="button"
                 className="flex w-full items-baseline justify-between gap-3 px-4 py-3 text-left hover:bg-leaf-soft"
-                onClick={() => {
-                  setPicked(f);
-                  setGrams(f.measures[0] ? String(Math.round(f.measures[0].grams)) : "100");
-                }}
+                onClick={() => choose(f)}
               >
                 <span className="text-ink">{f.name}</span>
                 <span className="shrink-0 text-sm tabular-nums text-muted">{f.kcalPer100g} / 100 g</span>
