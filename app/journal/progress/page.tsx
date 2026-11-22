@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { bmi, fromDisplayWeight, toDisplayWeight } from "@/lib/calc";
+import { bmi, fromDisplayWeight, proteinTarget, toDisplayWeight } from "@/lib/calc";
+import { weeklyCheckIn } from "@/lib/checkin";
 import { addDays, dayKey, parseDay, shortDay } from "@/lib/dates";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
@@ -73,6 +74,19 @@ export default function ProgressPage() {
     });
   }, [week, weekStart]);
 
+  const checkIn = useMemo(
+    () =>
+      weeklyCheckIn({
+        entries: week,
+        weights,
+        today,
+        target,
+        proteinGoal: proteinTarget(currentKg),
+        formatWeight: (kg) => `${toDisplayWeight(kg, unit)} ${unit}`,
+      }),
+    [week, weights, today, target, currentKg, unit],
+  );
+
   if (!profile) return null;
 
   const lost = profile.startWeightKg - currentKg;
@@ -113,6 +127,50 @@ export default function ProgressPage() {
           <p className="mt-0.5 font-display text-2xl tabular-nums text-ink">{Math.abs(toDisplayWeight(toGo, unit))}</p>
           <p className="text-xs text-muted">{unit}</p>
         </div>
+      </section>
+
+      <section className="card mt-4 p-5" aria-label="Weekly check-in">
+        <h2 className="font-semibold text-ink">Your week</h2>
+        <p className="text-sm text-muted">The last 7 days, from your journal.</p>
+        <dl className="mt-4 grid grid-cols-3 text-center">
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted">Days logged</dt>
+            <dd className="mt-0.5 text-lg tabular-nums text-ink">{checkIn.daysLogged} / 7</dd>
+          </div>
+          <div className="border-x border-line">
+            <dt className="text-xs uppercase tracking-wide text-muted">Net kcal a day</dt>
+            <dd className="mt-0.5 text-lg tabular-nums text-ink">
+              {checkIn.daysLogged ? checkIn.averageNet.toLocaleString() : "–"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted">Weight</dt>
+            <dd
+              className={`mt-0.5 text-lg tabular-nums ${
+                checkIn.weightChangeKg === null ? "text-ink" : checkIn.weightChangeKg <= 0 ? "text-leaf" : "text-clay"
+              }`}
+            >
+              {checkIn.weightChangeKg === null
+                ? "–"
+                : `${checkIn.weightChangeKg > 0 ? "+" : checkIn.weightChangeKg < 0 ? "−" : ""}${Math.abs(toDisplayWeight(checkIn.weightChangeKg, unit))} ${unit}`}
+            </dd>
+          </div>
+        </dl>
+        {checkIn.wentWell.length ? (
+          <>
+            <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-muted">What went well</h3>
+            <ul className="mt-2 space-y-1.5 text-ink">
+              {checkIn.wentWell.map((line) => (
+                <li key={line} className="flex gap-2">
+                  <span className="text-leaf" aria-hidden>✓</span>
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+        <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-muted">One thing for this week</h3>
+        <p className="mt-2 rounded-xl bg-leaf-soft px-3.5 py-3 text-ink">{checkIn.suggestion}</p>
       </section>
 
       <section className="card mt-4 p-5">

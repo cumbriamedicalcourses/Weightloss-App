@@ -15,12 +15,13 @@ const MEALS: { id: Meal; label: string }[] = [
   { id: "snack", label: "Snack" },
 ];
 
-type Tab = "recent" | "search" | "photo" | "manual";
+type Tab = "recent" | "search" | "describe" | "photo" | "manual";
 const TABS: { id: Tab; label: string }[] = [
   { id: "recent", label: "Recent" },
   { id: "search", label: "Search" },
+  { id: "describe", label: "Describe" },
   { id: "photo", label: "Photo" },
-  { id: "manual", label: "Type it in" },
+  { id: "manual", label: "Manual" },
 ];
 
 function mealForNow(): Meal {
@@ -121,7 +122,7 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
         </select>
       </div>
 
-      <div role="tablist" aria-label="How to add" className="mb-5 grid grid-cols-4 gap-1 rounded-xl border border-line bg-card p-1">
+      <div role="tablist" aria-label="How to add" className="mb-5 grid grid-cols-5 gap-0.5 rounded-xl border border-line bg-card p-1">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -129,7 +130,7 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
             type="button"
             aria-selected={shown === t.id}
             onClick={() => pick(t.id)}
-            className={`min-h-11 rounded-lg text-sm font-semibold ${
+            className={`min-h-11 rounded-lg text-[13px] font-semibold ${
               shown === t.id ? "bg-leaf text-white" : "text-muted hover:text-ink"
             }`}
           >
@@ -148,7 +149,8 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
         />
       ) : null}
       {shown === "search" ? <SearchTab call={call} save={(i) => save([i], "search")} /> : null}
-      {shown === "photo" ? <PhotoTab call={call} save={(i) => save(i, "photo")} /> : null}
+      {shown === "describe" ? <PhotoTab mode="describe" call={call} save={(i) => save(i, "describe")} /> : null}
+      {shown === "photo" ? <PhotoTab mode="photo" call={call} save={(i) => save(i, "photo")} /> : null}
       {shown === "manual" ? <ManualTab save={(i) => save([i], "manual")} /> : null}
     </Sheet>
   );
@@ -404,8 +406,18 @@ function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void
   );
 }
 
-function PhotoTab({ call, save }: { call: Call; save: (i: Item[]) => Promise<void> }) {
+/** Estimates a meal from a photo or from a description in words. */
+function PhotoTab({
+  mode,
+  call,
+  save,
+}: {
+  mode: "photo" | "describe";
+  call: Call;
+  save: (i: Item[]) => Promise<void>;
+}) {
   const [note, setNote] = useState("");
+  const [text, setText] = useState("");
   const [preview, setPreview] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -435,11 +447,51 @@ function PhotoTab({ call, save }: { call: Call; save: (i: Item[]) => Promise<voi
     }
   }
 
+  async function describe(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    setResult(null);
+    setBusy(true);
+    try {
+      const data = (await call("/api/estimate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      })) as EstimateResult;
+      setResult(data);
+      setItems(data.items.map((i, key) => ({ ...i, key })));
+    } catch (err) {
+      setError((err as Error).message || "That didn't work. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const total = items.reduce((sum, i) => sum + (Number(i.calories) || 0), 0);
 
   return (
     <div className="space-y-4">
-      {!result ? (
+      {!result && mode === "describe" ? (
+        <form onSubmit={describe} className="space-y-4">
+          <div>
+            <label className="label" htmlFor="describe-text">What did you have?</label>
+            <textarea
+              id="describe-text"
+              className="field min-h-28"
+              placeholder="For example, two slices of toast with butter and a mug of tea with milk"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              maxLength={600}
+            />
+          </div>
+          <button className="btn w-full" disabled={busy || text.trim().length < 3}>
+            {busy ? "Working it out…" : "Work out the calories"}
+          </button>
+          <p className="text-sm text-muted">Include amounts if you know them. You can check and change every line before saving.</p>
+        </form>
+      ) : null}
+
+      {!result && mode === "photo" ? (
         <>
           <div>
             <label className="label" htmlFor="photo-note">Anything the photo can&apos;t show? (optional)</label>
@@ -542,7 +594,7 @@ function PhotoTab({ call, save }: { call: Call; save: (i: Item[]) => Promise<voi
                 setPreview("");
               }}
             >
-              Try another photo
+              {mode === "photo" ? "Try another photo" : "Start again"}
             </button>
             <button type="button" className="btn flex-1" disabled={!items.length} onClick={() => void save(items)}>
               Add to journal
