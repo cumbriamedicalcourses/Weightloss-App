@@ -11,14 +11,16 @@ import {
   where,
 } from "firebase/firestore";
 import { firebaseEnabled, firestore } from "./firebase";
-import type { Entry, NewEntry, Profile, WeightLog } from "./types";
+import type { Entry, Favourite, NewEntry, Profile, WeightLog } from "./types";
 
 type Unsub = () => void;
 
 /** Everything the journal reads and writes, per signed-in person. */
 export interface Store {
   watchProfile(uid: string, cb: (p: Profile | null) => void): Unsub;
+  /** Saves the profile fields. Favourites are kept as they are. */
   saveProfile(uid: string, p: Profile): Promise<void>;
+  setFavourites(uid: string, list: Favourite[]): Promise<void>;
   /** Entries with from <= date <= to (YYYY-MM-DD). */
   watchEntries(uid: string, from: string, to: string, cb: (e: Entry[]) => void): Unsub;
   addEntry(uid: string, e: NewEntry): Promise<void>;
@@ -40,7 +42,12 @@ const firestoreStore: Store = {
     );
   },
   async saveProfile(uid, p) {
-    await setDoc(doc(firestore(), "users", uid), clean(p));
+    const fields = { ...p };
+    delete fields.favourites;
+    await setDoc(doc(firestore(), "users", uid), clean(fields), { merge: true });
+  },
+  async setFavourites(uid, list) {
+    void setDoc(doc(firestore(), "users", uid), { favourites: list.map(clean) }, { merge: true });
   },
   watchEntries(uid, from, to, cb) {
     const q = query(
@@ -120,7 +127,12 @@ function watch(run: () => void): Unsub {
 const localStore: Store = {
   watchProfile: (uid, cb) => watch(() => cb(read(uid).profile)),
   async saveProfile(uid, p) {
-    write(uid, (d) => void (d.profile = p));
+    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites }));
+  },
+  async setFavourites(uid, list) {
+    write(uid, (d) => {
+      if (d.profile) d.profile.favourites = list;
+    });
   },
   watchEntries: (uid, from, to, cb) =>
     watch(() => cb(read(uid).entries.filter((e) => e.date >= from && e.date <= to))),

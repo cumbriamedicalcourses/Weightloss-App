@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AddExercise from "@/components/add-exercise";
 import AddFood from "@/components/add-food";
 import { addDays, dayKey, friendlyDay } from "@/lib/dates";
+import { proteinTarget } from "@/lib/calc";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
 import type { Entry, Meal } from "@/lib/types";
@@ -41,12 +42,18 @@ function Row({ entry, onDelete }: { entry: Entry; onDelete: () => void }) {
 }
 
 export default function TodayPage() {
-  const { user, profile, target } = useJournal();
+  const { user, profile, target, currentKg } = useJournal();
   const [date, setDate] = useState(dayKey);
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [sheet, setSheet] = useState<"food" | "exercise" | null>(null);
 
+  const [dayBefore, setDayBefore] = useState<Entry[]>([]);
+
   useEffect(() => store.watchEntries(user.uid, date, date, setEntries), [user.uid, date]);
+  useEffect(() => {
+    const prev = addDays(date, -1);
+    return store.watchEntries(user.uid, prev, prev, setDayBefore);
+  }, [user.uid, date]);
 
   if (!profile) return null;
 
@@ -60,6 +67,29 @@ export default function TodayPage() {
   const over = left < 0;
   const pct = allowance > 0 ? Math.min(100, Math.round((eaten / allowance) * 100)) : 0;
   const isToday = date === dayKey();
+
+  const sum = (k: "protein" | "carbs" | "fat") => Math.round(food.reduce((s, e) => s + (e[k] ?? 0), 0));
+  const protein = sum("protein");
+  const proteinGoal = proteinTarget(currentKg);
+  const withoutMacros = food.filter((e) => e.protein === undefined && e.carbs === undefined && e.fat === undefined).length;
+  const toCopy = dayBefore.filter((e) => e.kind === "food");
+
+  function copyDayBefore() {
+    for (const e of toCopy) {
+      void store.addEntry(user.uid, {
+        date,
+        kind: "food",
+        name: e.name,
+        calories: e.calories,
+        meal: e.meal,
+        portion: e.portion,
+        protein: e.protein,
+        carbs: e.carbs,
+        fat: e.fat,
+        source: "copy",
+      });
+    }
+  }
 
   function go(n: number) {
     setEntries(null);
@@ -116,6 +146,49 @@ export default function TodayPage() {
         </dl>
       </section>
 
+      {food.length ? (
+        <section className="card mt-3 p-4" aria-label="Protein, carbs and fat for the day">
+          <dl className="grid grid-cols-3 text-center">
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted">Protein</dt>
+              <dd className="mt-0.5 tabular-nums text-ink">
+                <span className="text-lg">{protein}</span>
+                <span className="text-sm text-muted"> / {proteinGoal} g</span>
+              </dd>
+            </div>
+            <div className="border-x border-line">
+              <dt className="text-xs uppercase tracking-wide text-muted">Carbs</dt>
+              <dd className="mt-0.5 tabular-nums text-ink">
+                <span className="text-lg">{sum("carbs")}</span>
+                <span className="text-sm text-muted"> g</span>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted">Fat</dt>
+              <dd className="mt-0.5 tabular-nums text-ink">
+                <span className="text-lg">{sum("fat")}</span>
+                <span className="text-sm text-muted"> g</span>
+              </dd>
+            </div>
+          </dl>
+          <div
+            className="mt-3 h-1.5 overflow-hidden rounded-full bg-leaf-soft"
+            role="progressbar"
+            aria-valuenow={Math.min(100, Math.round((protein / proteinGoal) * 100))}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Share of today's protein goal eaten"
+          >
+            <div className="h-full rounded-full bg-leaf" style={{ width: `${Math.min(100, (protein / proteinGoal) * 100)}%` }} />
+          </div>
+          {withoutMacros ? (
+            <p className="mt-2 text-xs text-muted">
+              {withoutMacros === 1 ? "1 food has" : `${withoutMacros} foods have`} no protein, carbs or fat figures, so these totals may be low.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
       <div className="mt-4 grid grid-cols-2 gap-3">
         <button type="button" className="btn" onClick={() => setSheet("food")}>Add food</button>
         <button type="button" className="btn-quiet" onClick={() => setSheet("exercise")}>Add exercise</button>
@@ -125,6 +198,12 @@ export default function TodayPage() {
         <p className="mt-10 text-center text-muted">
           Nothing written down {isToday ? "yet today" : "for this day"}. Add your first meal to begin.
         </p>
+      ) : null}
+
+      {entries && !food.length && toCopy.length ? (
+        <button type="button" className="btn-quiet mx-auto mt-4 flex" onClick={copyDayBefore}>
+          Copy {isToday ? "yesterday's" : "the day before's"} food ({toCopy.length} {toCopy.length === 1 ? "item" : "items"})
+        </button>
       ) : null}
 
       {MEAL_ORDER.map((meal) => {

@@ -60,3 +60,11 @@ export function bmi(weightKg: number, heightCm: number) {
   const m = heightCm / 100;
   return weightKg / (m * m);
 }
+
+/**
+ * Daily protein to aim for while losing weight: 1.2 g per kg of body weight,
+ * kept between 60 g and 120 g so it stays sensible at higher weights.
+ */
+export function proteinTarget(weightKg: number) {
+  return Math.round(Math.min(120, Math.max(60, 1.2 * weightKg)) / 5) * 5;
+}
