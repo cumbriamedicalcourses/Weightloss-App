@@ -30,6 +30,23 @@ export interface Profile {
   water?: Record<string, number>;
   /** Body measurements in centimetres, by day (YYYY-MM-DD). */
   measurements?: Record<string, Measurement>;
+  /** Weight-loss injections, for people who use them. */
+  glp1?: Glp1;
+}
+
+export interface Glp1 {
+  /** Which medicine: semaglutide, tirzepatide, liraglutide or other. */
+  medicine?: string;
+  /** Injections by day (YYYY-MM-DD). */
+  log?: Record<string, Injection>;
+}
+
+export interface Injection {
+  /** Dose in mg. */
+  dose?: number;
+  site?: string;
+  /** Ids of side effects noticed since the last dose. */
+  effects?: string[];
 }
 
 /** Tape measurements in centimetres. Any of them can be left out. */

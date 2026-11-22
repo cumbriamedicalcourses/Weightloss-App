@@ -19,7 +19,7 @@ export function remindersOf(profile: Profile | null | undefined): Reminders {
 }
 
 export interface Nudge {
-  id: "weigh" | "log";
+  id: "weigh" | "log" | "inject";
   title: string;
   body: string;
   href?: string;
@@ -37,8 +37,19 @@ export function nudgeFor(input: {
   today: string;
   /** Hour of the day, 0 to 23, on the person's own clock. */
   hour: number;
+  /** True when a weight-loss injection is due today or overdue. */
+  injectionDue?: boolean;
 }): Nudge | null {
   const { reminders, weights, todayEntries, today, hour } = input;
+  if (input.injectionDue) {
+    return {
+      id: "inject",
+      title: "Your injection is due",
+      body: "Log it when you have taken it, so the next one is worked out for you.",
+      href: "/journal/injections",
+      action: "Open injections",
+    };
+  }
   const last = weights.length ? weights[weights.length - 1].date : null;
   if (reminders.weigh && last && last <= addDays(today, -7)) {
     return {

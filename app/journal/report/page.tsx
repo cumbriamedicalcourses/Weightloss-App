@@ -9,6 +9,7 @@ import { addDays, dayKey, parseDay } from "@/lib/dates";
 import { WEEKLY_UNIT_GUIDE } from "@/lib/drinks";
 import { levelOf, weeklyMinutes } from "@/lib/exercise-plan";
 import { formatLength, lengthUnit } from "@/lib/measurements";
+import { injectionStatus } from "@/lib/glp1";
 import { REPORT_DAYS, buildReport } from "@/lib/report";
 import type { Entry } from "@/lib/types";
 
@@ -51,6 +52,7 @@ export default function ReportPage() {
   const change = (kg: number) => (kg === 0 ? "no change" : `${kg < 0 ? "down" : "up"} ${w(Math.abs(kg))}`);
   const age = new Date().getFullYear() - profile.birthYear;
   const planned = weeklyMinutes(profile.exerciseLevel);
+  const jab = injectionStatus(profile, today);
 
   return (
     <>
@@ -99,6 +101,12 @@ export default function ReportPage() {
               {report.recentPaceKg === null ? "Not enough weigh-ins" : `${change(report.recentPaceKg)} a week`}
             </Row>
             <Row label="Goal weight">{w(profile.goalWeightKg)}</Row>
+            {jab ? (
+              <Row label="Weight-loss injection">
+                {jab.medicine.label}
+                {jab.last ? `, ${jab.last.dose} mg ${jab.medicine.everyDays === 1 ? "daily" : "weekly"} (last ${longDate(jab.last.date)})` : ""}
+              </Row>
+            ) : null}
             {report.waist ? (
               <Row label={`Waist (${longDate(report.waist.date)})`}>
                 {formatLength(report.waist.latestCm, len)} · waist-to-height {report.waist.ratio.toFixed(2)}
