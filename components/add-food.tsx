@@ -301,7 +301,7 @@ function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void
       } finally {
         if (!cancelled) setBusy(false);
       }
-    }, 350);
+    }, 500);
     return () => {
       cancelled = true;
       clearTimeout(timer);
