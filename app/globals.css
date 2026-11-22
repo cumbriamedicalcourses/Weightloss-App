@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f5efe3;
-  --color-card: #fffdf8;
-  --color-ink: #1f2a24;
-  --color-muted: #5f6b63;
-  --color-line: #e2d9c6;
-  --color-leaf: #2f6b4f;
-  --color-leaf-dark: #235340;
-  --color-leaf-soft: #e3eee6;
-  --color-clay: #b9472f;
-  --color-clay-soft: #f7e4dc;
+  --color-paper: #eaf4fb;
+  --color-card: #ffffff;
+  --color-ink: #12283a;
+  --color-muted: #4d6377;
+  --color-line: #c5dcee;
+  --color-leaf: #17568f;
+  --color-leaf-dark: #0f4373;
+  --color-leaf-soft: #d9eaf8;
+  --color-clay: #c8501f;
+  --color-clay-soft: #fde8dc;
   --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
@@ -48,7 +48,7 @@ dialog.sheet {
   margin-inline: auto;
 }
 dialog.sheet::backdrop {
-  background: rgb(31 42 36 / 0.45);
+  background: rgb(18 40 58 / 0.45);
 }
 
 @media (prefers-reduced-motion: no-preference) {
