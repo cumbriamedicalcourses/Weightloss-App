@@ -2,7 +2,7 @@ import type { Favourite, SavedMeal } from "./types";
 
 export const MAX_SAVED_MEALS = 40;
 
-const sum = (items: Favourite[], key: "calories" | "protein" | "carbs" | "fat") =>
+const sum = (items: Favourite[], key: "calories" | "protein" | "carbs" | "fat" | "units") =>
   items.some((i) => i[key] !== undefined) ? items.reduce((s, i) => s + (i[key] ?? 0), 0) : undefined;
 
 /**
@@ -20,6 +20,7 @@ export function servingOf(meal: SavedMeal): Favourite[] {
       protein: share(sum(meal.items, "protein")),
       carbs: share(sum(meal.items, "carbs")),
       fat: share(sum(meal.items, "fat")),
+      units: share(sum(meal.items, "units")),
     },
   ];
 }

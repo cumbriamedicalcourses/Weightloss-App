@@ -7,6 +7,8 @@ export interface CheckIn {
   averageNet: number;
   averageProtein: number;
   exerciseMinutes: number;
+  /** Alcohol units logged over the week. */
+  alcoholUnits: number;
   /** Change over the week in kg (negative is a loss), or null without two weigh-ins. */
   weightChangeKg: number | null;
   wentWell: string[];
@@ -40,6 +42,7 @@ export function weeklyCheckIn(input: {
   const withProtein = food.filter((e) => e.protein !== undefined);
   const averageProtein = daysLogged ? Math.round(withProtein.reduce((s, e) => s + (e.protein ?? 0), 0) / daysLogged) : 0;
   const proteinKnown = food.length > 0 && withProtein.length >= food.length / 2;
+  const alcoholUnits = Math.round(food.reduce((s, e) => s + (e.units ?? 0), 0) * 10) / 10;
   const exerciseMinutes = exercise.reduce((s, e) => s + (e.minutes ?? 0), 0);
 
   // Compare the latest weigh-in this week with the last one before the week,
@@ -86,5 +89,5 @@ export function weeklyCheckIn(input: {
     suggestion = "Keep going exactly as you are. Steady weeks like this one are what add up.";
   }
 
-  return { daysLogged, averageNet, averageProtein, exerciseMinutes, weightChangeKg, wentWell: wentWell.slice(0, 3), suggestion };
+  return { daysLogged, averageNet, averageProtein, exerciseMinutes, alcoholUnits, weightChangeKg, wentWell: wentWell.slice(0, 3), suggestion };
 }

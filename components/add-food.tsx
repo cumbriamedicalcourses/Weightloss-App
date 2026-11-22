@@ -98,6 +98,7 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
           protein: grams(i.protein),
           carbs: grams(i.carbs),
           fat: grams(i.fat),
+          units: i.units,
           source,
         }),
       ),
@@ -207,7 +208,7 @@ function RecentTab({
     const list: Item[] = [];
     for (const e of [...(recent ?? [])].sort((a, b) => b.createdAt - a.createdAt)) {
       if (e.kind !== "food") continue;
-      const item: Item = { name: e.name, calories: e.calories, portion: e.portion, protein: e.protein, carbs: e.carbs, fat: e.fat };
+      const item: Item = { name: e.name, calories: e.calories, portion: e.portion, protein: e.protein, carbs: e.carbs, fat: e.fat, units: e.units };
       const key = itemKey(item);
       if (seen.has(key)) continue;
       seen.add(key);

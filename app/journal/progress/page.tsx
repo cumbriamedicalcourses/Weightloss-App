@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { WeightInput } from "@/components/weight-input";
 import { UNIT_NAME, bmi, formatWeight, proteinTarget, toDisplayWeight, weightParts } from "@/lib/calc";
 import { weeklyCheckIn } from "@/lib/checkin";
+import { WATER_GOAL, WEEKLY_UNIT_GUIDE } from "@/lib/drinks";
 import { addDays, dayKey, parseDay, shortDay } from "@/lib/dates";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
@@ -97,6 +98,7 @@ export default function ProgressPage() {
 
   if (!profile) return null;
 
+  const waterDays = days.filter((d) => (profile.water?.[d.date] ?? 0) >= WATER_GOAL - 2).length;
   const lost = profile.startWeightKg - currentKg;
   const toGo = currentKg - profile.goalWeightKg;
   const now = weightParts(currentKg, unit);
@@ -168,6 +170,16 @@ export default function ProgressPage() {
             </dd>
           </div>
         </dl>
+        <p className="mt-4 text-sm text-muted">
+          Water: {waterDays} of 7 days at 6 glasses or more.
+          {checkIn.alcoholUnits
+            ? ` Alcohol: ${checkIn.alcoholUnits} ${checkIn.alcoholUnits === 1 ? "unit" : "units"} this week${
+                checkIn.alcoholUnits > WEEKLY_UNIT_GUIDE
+                  ? `, which is over the ${WEEKLY_UNIT_GUIDE} a week that UK guidance advises as an upper limit.`
+                  : ` (UK guidance is no more than ${WEEKLY_UNIT_GUIDE}).`
+              }`
+            : ""}
+        </p>
         {checkIn.wentWell.length ? (
           <>
             <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-muted">What went well</h3>

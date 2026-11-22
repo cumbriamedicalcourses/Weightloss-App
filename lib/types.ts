@@ -19,6 +19,8 @@ export interface Profile {
   favourites?: Favourite[];
   /** Meals and recipes the person has saved to log again in one tap. */
   savedMeals?: SavedMeal[];
+  /** Glasses of water drunk, by day (YYYY-MM-DD). */
+  water?: Record<string, number>;
 }
 
 /** Protein, carbohydrate and fat in grams. Missing when not known. */
@@ -32,6 +34,8 @@ export interface Favourite extends Macros {
   name: string;
   calories: number;
   portion?: string;
+  /** Alcohol units, for alcoholic drinks. */
+  units?: number;
 }
 
 export interface SavedMeal {
@@ -55,7 +59,9 @@ export interface Entry extends Macros {
   /** Free-text portion, e.g. "150 g" or "1 bowl". */
   portion?: string;
   minutes?: number;
-  source?: "search" | "photo" | "manual" | "recent" | "copy" | "plan" | "describe" | "saved";
+  /** Alcohol units, for alcoholic drinks. */
+  units?: number;
+  source?: "search" | "photo" | "manual" | "recent" | "copy" | "plan" | "describe" | "saved" | "drink";
   createdAt: number;
 }
 

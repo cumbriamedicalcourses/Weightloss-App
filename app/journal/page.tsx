@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import AddExercise from "@/components/add-exercise";
+import AddDrink from "@/components/add-drink";
 import AddFood from "@/components/add-food";
 import SaveMeal from "@/components/save-meal";
 import { addDays, dayKey, friendlyDay } from "@/lib/dates";
 import { proteinTarget } from "@/lib/calc";
+import { WATER_GOAL, totalUnits } from "@/lib/drinks";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
 import type { Entry, Meal } from "@/lib/types";
@@ -19,7 +21,8 @@ const MEAL_LABEL: Record<Meal, string> = {
 const MEAL_ORDER: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
 
 function Row({ entry, onDelete }: { entry: Entry; onDelete: () => void }) {
-  const detail = entry.kind === "exercise" ? (entry.minutes ? `${entry.minutes} minutes` : "") : entry.portion;
+  const base = entry.kind === "exercise" ? (entry.minutes ? `${entry.minutes} minutes` : "") : entry.portion;
+  const detail = entry.units ? [base, `${entry.units} ${entry.units === 1 ? "unit" : "units"}`].filter(Boolean).join(" · ") : base;
   return (
     <li className="flex items-center gap-3 border-b border-line py-3 last:border-b-0">
       <div className="min-w-0 flex-1">
@@ -46,7 +49,7 @@ export default function TodayPage() {
   const { user, profile, target, currentKg } = useJournal();
   const [date, setDate] = useState(dayKey);
   const [entries, setEntries] = useState<Entry[] | null>(null);
-  const [sheet, setSheet] = useState<"food" | "exercise" | null>(null);
+  const [sheet, setSheet] = useState<"food" | "exercise" | "drink" | null>(null);
 
   const [saving, setSaving] = useState<Meal | null>(null);
   const [dayBefore, setDayBefore] = useState<Entry[]>([]);
@@ -73,7 +76,10 @@ export default function TodayPage() {
   const sum = (k: "protein" | "carbs" | "fat") => Math.round(food.reduce((s, e) => s + (e[k] ?? 0), 0));
   const protein = sum("protein");
   const proteinGoal = proteinTarget(currentKg);
-  const withoutMacros = food.filter((e) => e.protein === undefined && e.carbs === undefined && e.fat === undefined).length;
+  const withoutMacros = food.filter((e) => !e.units && e.protein === undefined && e.carbs === undefined && e.fat === undefined).length;
+  const units = totalUnits(food);
+  const water = profile.water?.[date] ?? 0;
+  const setWater = (n: number) => void store.setWater(user.uid, date, Math.max(0, Math.min(20, n)));
   const toCopy = dayBefore.filter((e) => e.kind === "food");
 
   function copyDayBefore() {
@@ -196,6 +202,46 @@ export default function TodayPage() {
         <button type="button" className="btn-quiet" onClick={() => setSheet("exercise")}>Add exercise</button>
       </div>
 
+      <section className="card mt-3 p-4" aria-label="Water and alcohol for the day">
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-ink">
+              Water <span className="tabular-nums text-muted">{water} of {WATER_GOAL} glasses</span>
+            </p>
+            <div className="mt-2 flex gap-1" aria-hidden>
+              {Array.from({ length: WATER_GOAL }, (_, i) => (
+                <span key={i} className={`h-2 flex-1 rounded-full ${i < water ? "bg-leaf" : "bg-leaf-soft"}`} />
+              ))}
+            </div>
+          </div>
+          <button
+            type="button"
+            aria-label="One glass of water fewer"
+            disabled={!water}
+            className="flex size-11 items-center justify-center rounded-xl border border-line text-xl text-ink hover:border-leaf disabled:opacity-40"
+            onClick={() => setWater(water - 1)}
+          >
+            −
+          </button>
+          <button
+            type="button"
+            aria-label="Add a glass of water"
+            className="flex size-11 items-center justify-center rounded-xl bg-leaf text-xl text-white hover:bg-leaf-dark"
+            onClick={() => setWater(water + 1)}
+          >
+            +
+          </button>
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
+          <p className="text-ink">
+            Alcohol <span className="tabular-nums text-muted">{units} {units === 1 ? "unit" : "units"}</span>
+          </p>
+          <button type="button" className="min-h-11 text-sm font-semibold text-leaf hover:underline" onClick={() => setSheet("drink")}>
+            Add an alcoholic drink
+          </button>
+        </div>
+      </section>
+
       {entries && !list.length ? (
         <p className="mt-10 text-center text-muted">
           Nothing written down {isToday ? "yet today" : "for this day"}. Add your first meal to begin.
@@ -258,6 +304,7 @@ export default function TodayPage() {
           onClose={() => setSaving(null)}
         />
       ) : null}
+      {sheet === "drink" ? <AddDrink uid={user.uid} date={date} onClose={() => setSheet(null)} /> : null}
       {sheet === "exercise" ? <AddExercise date={date} onClose={() => setSheet(null)} /> : null}
     </>
   );

@@ -25,6 +25,8 @@ export interface Store {
   saveProfile(uid: string, p: Profile): Promise<void>;
   setFavourites(uid: string, list: Favourite[]): Promise<void>;
   setSavedMeals(uid: string, list: SavedMeal[]): Promise<void>;
+  /** Sets the number of glasses of water for a day. */
+  setWater(uid: string, date: string, glasses: number): Promise<void>;
   /** Entries with from <= date <= to (YYYY-MM-DD). */
   watchEntries(uid: string, from: string, to: string, cb: (e: Entry[]) => void): Unsub;
   addEntry(uid: string, e: NewEntry): Promise<void>;
@@ -60,6 +62,7 @@ const firestoreStore: Store = {
     const fields = { ...p };
     delete fields.favourites;
     delete fields.savedMeals;
+    delete fields.water;
     await setDoc(doc(firestore(), "users", uid), clean(fields), { merge: true });
   },
   async setFavourites(uid, list) {
@@ -68,6 +71,9 @@ const firestoreStore: Store = {
   async setSavedMeals(uid, list) {
     const savedMeals = list.map((m) => ({ ...m, items: m.items.map(clean) }));
     void setDoc(doc(firestore(), "users", uid), { savedMeals }, { merge: true });
+  },
+  async setWater(uid, date, glasses) {
+    void setDoc(doc(firestore(), "users", uid), { water: { [date]: glasses } }, { merge: true });
   },
   watchEntries(uid, from, to, cb) {
     const q = query(
@@ -178,7 +184,7 @@ function watch(run: () => void): Unsub {
 const localStore: Store = {
   watchProfile: (uid, cb) => watch(() => cb(read(uid).profile)),
   async saveProfile(uid, p) {
-    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites, savedMeals: d.profile?.savedMeals }));
+    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites, savedMeals: d.profile?.savedMeals, water: d.profile?.water }));
   },
   async setFavourites(uid, list) {
     write(uid, (d) => {
@@ -188,6 +194,11 @@ const localStore: Store = {
   async setSavedMeals(uid, list) {
     write(uid, (d) => {
       if (d.profile) d.profile.savedMeals = list;
+    });
+  },
+  async setWater(uid, date, glasses) {
+    write(uid, (d) => {
+      if (d.profile) d.profile.water = { ...d.profile.water, [date]: glasses };
     });
   },
   watchEntries: (uid, from, to, cb) =>
