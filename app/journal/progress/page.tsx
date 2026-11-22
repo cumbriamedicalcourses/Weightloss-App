@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import MeasurementsCard from "@/components/measurements-card";
 import ProgressPhotos from "@/components/progress-photos";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
@@ -301,6 +302,16 @@ export default function ProgressPage() {
             })}
           </ul>
         </div>
+      </section>
+
+      <section className="card mt-4 p-5" aria-label="Report for your GP">
+        <h2 className="font-semibold text-ink">Report for your GP</h2>
+        <p className="mt-1 text-sm text-muted">
+          A one-page summary of your weight, eating, exercise and alcohol to print or save for an appointment.
+        </p>
+        <Link href="/journal/report" className="btn-quiet mt-4 w-full">
+          Open my report
+        </Link>
       </section>
 
       <section className="card mt-4 p-5" aria-label="Milestones">

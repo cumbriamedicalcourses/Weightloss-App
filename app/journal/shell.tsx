@@ -50,9 +50,9 @@ function Inner({ children }: { children: ReactNode }) {
 
   return (
     <JournalProvider fallback={<Loading />}>
-      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pb-28 pt-4">
+      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pb-28 pt-4 print:max-w-none print:p-0">
         {preview ? (
-          <p className="mb-4 rounded-xl bg-clay-soft px-3.5 py-2.5 text-sm text-clay">
+          <p className="mb-4 rounded-xl bg-clay-soft px-3.5 py-2.5 text-sm text-clay print:hidden">
             Preview mode: accounts are not connected yet, so this journal is saved in this browser only.
           </p>
         ) : null}
@@ -60,7 +60,7 @@ function Inner({ children }: { children: ReactNode }) {
       </div>
       <nav
         aria-label="Journal sections"
-        className="fixed inset-x-0 bottom-0 border-t border-line bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+        className="fixed inset-x-0 bottom-0 border-t border-line bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur print:hidden"
       >
         <ul className="mx-auto flex max-w-xl">
           {TABS.map((t) => {
