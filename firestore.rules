@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Each person can read and write only their own journal.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /entries/{entryId} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.kind in ['food', 'exercise']
+          && request.resource.data.date is string
+          && request.resource.data.name is string
+          && request.resource.data.name.size() <= 200
+          && request.resource.data.calories is number
+          && request.resource.data.calories >= 0
+          && request.resource.data.calories <= 20000;
+      }
+
+      match /weights/{date} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.date == date
+          && request.resource.data.kg is number
+          && request.resource.data.kg > 20
+          && request.resource.data.kg < 400;
+      }
+    }
+  }
+}
