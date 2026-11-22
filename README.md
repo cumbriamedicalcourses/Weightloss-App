@@ -38,14 +38,14 @@ the journal is kept in the browser. This is handy for trying changes.
 ## Set up for production
 
 1. **Firebase console**
-   - Add a Web app and copy its settings into the `NEXT_PUBLIC_FIREBASE_*` variables.
+   - The web app settings are already in `.env.production`.
    - Authentication > Sign-in method: enable Email/Password and Google.
    - Authentication > Settings > Authorised domains: add `myweightlossjournal.com`.
    - Firestore Database: create it in production mode, then paste `firestore.rules` into the Rules tab and publish.
 2. **Anthropic**: create an API key at https://console.anthropic.com and set `ANTHROPIC_API_KEY`.
 3. **USDA**: get a free key at https://fdc.nal.usda.gov/api-key-signup and set `USDA_API_KEY`.
 4. **Hostinger**: create a Node.js web app from this GitHub repository with
-   build command `npm run build` and start command `npm start`, and add the
+   build command `npm run build` and start command `npm start`, and add the secret
    variables from `.env.example`. The `NEXT_PUBLIC_*` values are read at build
    time, so rebuild after changing them.
 
