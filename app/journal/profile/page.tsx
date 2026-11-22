@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteAllPhotos } from "@/lib/photos";
 import { remindersOf } from "@/lib/reminders";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -176,6 +177,7 @@ export default function ProfilePage() {
     setDataBusy(true);
     try {
       await store.deleteAll(user.uid);
+      await deleteAllPhotos(user.uid).catch(() => {});
       await auth.deleteAccount();
       router.replace("/");
     } catch {

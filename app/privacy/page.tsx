@@ -17,6 +17,7 @@ const BODY: Block[] = [
     "Your profile: sex, year of birth, height, weight, goal weight, activity level and chosen pace. These are used to work out your daily calorie target.",
     "Your journal: the food, drink and exercise you log, your water count, your weigh-ins, the foods you mark as favourites, and the meals and recipes you save.",
     "Photos and descriptions of meals, only for the moment it takes to estimate them. They are not saved in your journal or on our servers.",
+    "Progress photos, if you add them, are kept only in the browser on your own device. They are never sent to us or to anyone else, and deleting your account on that device removes them.",
   ] },
   { p: "Information about your weight and what you eat is health information, which the law treats as especially sensitive. We hold it only because you choose to enter it, and you can remove it at any time." },
   { h: "Where it is kept and who helps us run the app" },
