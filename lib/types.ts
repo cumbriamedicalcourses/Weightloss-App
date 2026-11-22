@@ -17,6 +17,8 @@ export interface Profile {
   customTarget?: number | null;
   /** Foods the person has starred for quick logging. */
   favourites?: Favourite[];
+  /** Meals and recipes the person has saved to log again in one tap. */
+  savedMeals?: SavedMeal[];
 }
 
 /** Protein, carbohydrate and fat in grams. Missing when not known. */
@@ -32,6 +34,14 @@ export interface Favourite extends Macros {
   portion?: string;
 }
 
+export interface SavedMeal {
+  id: string;
+  name: string;
+  /** How many servings the items make. 1 for an ordinary meal. */
+  servings: number;
+  items: Favourite[];
+}
+
 export type Meal = "breakfast" | "lunch" | "dinner" | "snack";
 
 export interface Entry extends Macros {
@@ -45,7 +55,7 @@ export interface Entry extends Macros {
   /** Free-text portion, e.g. "150 g" or "1 bowl". */
   portion?: string;
   minutes?: number;
-  source?: "search" | "photo" | "manual" | "recent" | "copy" | "plan" | "describe";
+  source?: "search" | "photo" | "manual" | "recent" | "copy" | "plan" | "describe" | "saved";
   createdAt: number;
 }
 

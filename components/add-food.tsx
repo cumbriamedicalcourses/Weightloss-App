@@ -5,7 +5,8 @@ import { useAuth } from "@/lib/auth";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
 import { addDays, dayKey } from "@/lib/dates";
-import type { Entry, EstimateItem, EstimateResult, Favourite, FoodResult, Macros, Meal } from "@/lib/types";
+import { servingOf } from "@/lib/saved-meals";
+import type { Entry, EstimateItem, EstimateResult, Favourite, FoodResult, Macros, Meal, SavedMeal } from "@/lib/types";
 import Sheet from "./sheet";
 
 const MEALS: { id: Meal; label: string }[] = [
@@ -54,6 +55,7 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
   const [tab, setTab] = useState<Tab>("search");
   const [recent, setRecent] = useState<Entry[] | null>(null);
   const favourites = useMemo(() => profile?.favourites ?? [], [profile]);
+  const savedMeals = useMemo(() => profile?.savedMeals ?? [], [profile]);
 
   // The last month of entries feeds the Recent tab.
   useEffect(() => {
@@ -64,7 +66,7 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
   // Open on Recent once there is something to show there, unless the person
   // has already picked a tab.
   const [touched, setTouched] = useState(false);
-  const hasQuick = favourites.length > 0 || Boolean(recent?.some((e) => e.kind === "food"));
+  const hasQuick = favourites.length > 0 || savedMeals.length > 0 || Boolean(recent?.some((e) => e.kind === "food"));
   const shown: Tab = !touched && hasQuick ? "recent" : tab;
   function pick(t: Tab) {
     setTouched(true);
@@ -142,6 +144,9 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
       {shown === "recent" ? (
         <RecentTab
           favourites={favourites}
+          savedMeals={savedMeals}
+          addSaved={(m) => save(servingOf(m), "saved", true)}
+          deleteSaved={(m) => void store.setSavedMeals(user.uid, savedMeals.filter((x) => x.id !== m.id))}
           recent={recent}
           add={(i) => save([i], "recent", true)}
           toggleFavourite={toggleFavourite}
@@ -176,12 +181,18 @@ function macroLine(m: Macros) {
 
 function RecentTab({
   favourites,
+  savedMeals,
+  addSaved,
+  deleteSaved,
   recent,
   add,
   toggleFavourite,
   onDone,
 }: {
   favourites: Favourite[];
+  savedMeals: SavedMeal[];
+  addSaved: (m: SavedMeal) => Promise<void>;
+  deleteSaved: (m: SavedMeal) => void;
   recent: Entry[] | null;
   add: (i: Item) => Promise<void>;
   toggleFavourite: (i: Item) => void;
@@ -207,14 +218,16 @@ function RecentTab({
   }, [recent, favKeys]);
 
   const term = filter.trim().toLowerCase();
-  const match = (i: Item) => !term || i.name.toLowerCase().includes(term);
+  const match = (i: { name: string }) => !term || i.name.toLowerCase().includes(term);
   const groups = [
     { title: "Favourites", items: favourites.filter(match) },
     { title: "Recent", items: recents.filter(match) },
   ].filter((g) => g.items.length);
   const count = Object.values(added).reduce((s, n) => s + n, 0);
 
-  if (!favourites.length && !recents.length) {
+  const saved = savedMeals.filter(match);
+
+  if (!favourites.length && !recents.length && !savedMeals.length) {
     return (
       <p className="text-sm text-muted">
         {recent ? "Foods you log will appear here, so next time you can add them with one tap. Start with Search, Photo or Type it in." : "Loading…"}
@@ -228,7 +241,54 @@ function RecentTab({
         <label className="label" htmlFor="recent-filter">Find in your foods</label>
         <input id="recent-filter" className="field" autoComplete="off" value={filter} onChange={(e) => setFilter(e.target.value)} />
       </div>
-      {!groups.length ? <p className="text-sm text-muted">Nothing matches “{filter.trim()}”. Try Search instead.</p> : null}
+      {saved.length ? (
+        <section>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">Saved meals and recipes</h3>
+          <ul className="card mt-2 divide-y divide-line overflow-hidden">
+            {saved.map((m) => {
+              const key = `saved:${m.id}`;
+              const serving = servingOf(m);
+              const kcal = serving.reduce((s, i) => s + Math.round(i.calories), 0);
+              return (
+                <li key={m.id} className="flex items-stretch">
+                  <button
+                    type="button"
+                    aria-label={`Delete saved meal ${m.name}`}
+                    className="flex w-12 shrink-0 items-center justify-center text-xl text-muted hover:text-clay"
+                    onClick={() => {
+                      if (window.confirm(`Delete “${m.name}” from your saved meals?`)) deleteSaved(m);
+                    }}
+                  >
+                    ×
+                  </button>
+                  <button
+                    type="button"
+                    className="flex min-w-0 flex-1 items-center justify-between gap-3 py-3 pr-4 text-left hover:bg-leaf-soft"
+                    onClick={() => {
+                      setAdded((a) => ({ ...a, [key]: (a[key] ?? 0) + 1 }));
+                      void addSaved(m);
+                    }}
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-ink">{m.name}</span>
+                      <span className="block truncate text-sm text-muted">
+                        {m.servings > 1
+                          ? `1 of ${m.servings} servings`
+                          : `${m.items.length} ${m.items.length === 1 ? "item" : "items"}`}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-sm tabular-nums text-muted">
+                      {added[key] ? <span className="mr-2 font-semibold text-leaf">Added{added[key] > 1 ? ` ×${added[key]}` : ""}</span> : null}
+                      {kcal} kcal
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
+      {!groups.length && !saved.length ? <p className="text-sm text-muted">Nothing matches “{filter.trim()}”. Try Search instead.</p> : null}
       {groups.map((g) => (
         <section key={g.title}>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{g.title}</h3>

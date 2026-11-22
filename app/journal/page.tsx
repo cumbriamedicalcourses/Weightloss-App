@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AddExercise from "@/components/add-exercise";
 import AddFood from "@/components/add-food";
+import SaveMeal from "@/components/save-meal";
 import { addDays, dayKey, friendlyDay } from "@/lib/dates";
 import { proteinTarget } from "@/lib/calc";
 import { useJournal } from "@/lib/journal";
@@ -47,6 +48,7 @@ export default function TodayPage() {
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [sheet, setSheet] = useState<"food" | "exercise" | null>(null);
 
+  const [saving, setSaving] = useState<Meal | null>(null);
   const [dayBefore, setDayBefore] = useState<Entry[]>([]);
 
   useEffect(() => store.watchEntries(user.uid, date, date, setEntries), [user.uid, date]);
@@ -215,11 +217,20 @@ export default function TodayPage() {
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{MEAL_LABEL[meal]}</h2>
               <span className="text-sm tabular-nums text-muted">{rows.reduce((s, e) => s + e.calories, 0)} kcal</span>
             </div>
-            <ul className="card mt-2 px-4">
-              {rows.map((e) => (
-                <Row key={e.id} entry={e} onDelete={() => void store.deleteEntry(user.uid, e.id)} />
-              ))}
-            </ul>
+            <div className="card mt-2 px-4">
+              <ul>
+                {rows.map((e) => (
+                  <Row key={e.id} entry={e} onDelete={() => void store.deleteEntry(user.uid, e.id)} />
+                ))}
+              </ul>
+              <button
+                type="button"
+                className="min-h-11 w-full border-t border-line text-sm font-semibold text-leaf hover:underline"
+                onClick={() => setSaving(meal)}
+              >
+                Save this meal to use again
+              </button>
+            </div>
           </section>
         );
       })}
@@ -239,6 +250,14 @@ export default function TodayPage() {
       ) : null}
 
       {sheet === "food" ? <AddFood date={date} onClose={() => setSheet(null)} /> : null}
+      {saving ? (
+        <SaveMeal
+          uid={user.uid}
+          entries={food.filter((e) => (e.meal ?? "snack") === saving)}
+          existing={profile.savedMeals ?? []}
+          onClose={() => setSaving(null)}
+        />
+      ) : null}
       {sheet === "exercise" ? <AddExercise date={date} onClose={() => setSheet(null)} /> : null}
     </>
   );
