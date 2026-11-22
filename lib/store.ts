@@ -14,16 +14,17 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { firebaseEnabled, firestore } from "./firebase";
-import type { Entry, Favourite, NewEntry, Profile, WeightLog } from "./types";
+import type { Entry, Favourite, NewEntry, Profile, SavedMeal, WeightLog } from "./types";
 
 type Unsub = () => void;
 
 /** Everything the journal reads and writes, per signed-in person. */
 export interface Store {
   watchProfile(uid: string, cb: (p: Profile | null) => void): Unsub;
-  /** Saves the profile fields. Favourites are kept as they are. */
+  /** Saves the profile fields. Favourites and saved meals are kept as they are. */
   saveProfile(uid: string, p: Profile): Promise<void>;
   setFavourites(uid: string, list: Favourite[]): Promise<void>;
+  setSavedMeals(uid: string, list: SavedMeal[]): Promise<void>;
   /** Entries with from <= date <= to (YYYY-MM-DD). */
   watchEntries(uid: string, from: string, to: string, cb: (e: Entry[]) => void): Unsub;
   addEntry(uid: string, e: NewEntry): Promise<void>;
@@ -58,10 +59,15 @@ const firestoreStore: Store = {
   async saveProfile(uid, p) {
     const fields = { ...p };
     delete fields.favourites;
+    delete fields.savedMeals;
     await setDoc(doc(firestore(), "users", uid), clean(fields), { merge: true });
   },
   async setFavourites(uid, list) {
     void setDoc(doc(firestore(), "users", uid), { favourites: list.map(clean) }, { merge: true });
+  },
+  async setSavedMeals(uid, list) {
+    const savedMeals = list.map((m) => ({ ...m, items: m.items.map(clean) }));
+    void setDoc(doc(firestore(), "users", uid), { savedMeals }, { merge: true });
   },
   watchEntries(uid, from, to, cb) {
     const q = query(
@@ -172,11 +178,16 @@ function watch(run: () => void): Unsub {
 const localStore: Store = {
   watchProfile: (uid, cb) => watch(() => cb(read(uid).profile)),
   async saveProfile(uid, p) {
-    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites }));
+    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites, savedMeals: d.profile?.savedMeals }));
   },
   async setFavourites(uid, list) {
     write(uid, (d) => {
       if (d.profile) d.profile.favourites = list;
+    });
+  },
+  async setSavedMeals(uid, list) {
+    write(uid, (d) => {
+      if (d.profile) d.profile.savedMeals = list;
     });
   },
   watchEntries: (uid, from, to, cb) =>
