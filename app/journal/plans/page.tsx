@@ -1,9 +1,23 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { dayKey } from "@/lib/dates";
 import { useJournal } from "@/lib/journal";
-import { BANDS, DAY_NAMES, DIETS, nearestBand, planDay, total, type Band, type Diet, type PlanMeal } from "@/lib/plans";
+import { loadChoice, loadSwaps, saveChoice, saveSwaps, swapKey, swapsFor, type SwapMap } from "@/lib/plan-choice";
+import {
+  BANDS,
+  DAY_NAMES,
+  DIETS,
+  mainOptions,
+  nearestBand,
+  planDay,
+  total,
+  type Band,
+  type Diet,
+  type MainMeal,
+  type PlanMeal,
+} from "@/lib/plans";
 import { store } from "@/lib/store";
 import type { Meal } from "@/lib/types";
 
@@ -13,8 +27,6 @@ const MEAL_LABEL: Record<Meal, string> = {
   dinner: "Dinner",
   snack: "Snacks",
 };
-
-const STORAGE_KEY = "wlj:plan";
 
 function Chips<T extends string | number>({
   label,
@@ -58,34 +70,43 @@ export default function PlansPage() {
   const [day, setDay] = useState(() => (new Date().getDay() + 6) % 7);
   const [added, setAdded] = useState<Record<string, boolean>>({});
 
-  // Remember the person's choice of plan on this device.
+  const [swaps, setSwaps] = useState<SwapMap>({});
+  const [swapping, setSwapping] = useState<MainMeal | null>(null);
+
+  // Remember the person's choice of plan and their swaps on this device.
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as { diet?: Diet; band?: Band } | null;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (saved?.diet && DIETS.some((d) => d.id === saved.diet)) setDiet(saved.diet);
-      if (saved?.band && BANDS.includes(saved.band)) setBand(saved.band);
-    } catch {
-      // Storage can be blocked; the defaults still work.
-    }
+    const saved = loadChoice();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (saved.diet) setDiet(saved.diet);
+    if (saved.band) setBand(saved.band);
+    setSwaps(loadSwaps());
   }, []);
 
   function choose(next: { diet?: Diet; band?: Band }) {
     const value = { diet: next.diet ?? diet, band: next.band ?? band };
     setDiet(value.diet);
     setBand(value.band);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
-    } catch {
-      // Nothing useful to do if storage is unavailable.
-    }
+    setSwapping(null);
+    saveChoice(value);
+  }
+
+  /** Use dish `index` for this meal today, or go back to the plan's own with null. */
+  function swap(meal: MainMeal, index: number | null) {
+    const next = { ...swaps };
+    if (index === null || index === day) delete next[swapKey(diet, day, meal)];
+    else next[swapKey(diet, day, meal)] = index;
+    setSwaps(next);
+    saveSwaps(next);
+    setSwapping(null);
   }
 
   if (!profile) return null;
 
-  const meals = planDay(diet, band, day);
+  const daySwaps = swapsFor(swaps, diet, day);
+  const meals = planDay(diet, band, day, daySwaps);
   const today = dayKey();
   const keyFor = (m: Meal) => `${today}|${diet}|${band}|${day}|${m}`;
+  const swappable = (m: Meal): m is MainMeal => m !== "snack";
 
   function log(list: PlanMeal[]) {
     for (const m of list) {
@@ -114,6 +135,7 @@ export default function PlansPage() {
       <h1 className="font-display text-2xl text-ink">Meal plans</h1>
       <p className="mt-1 text-muted">
         Seven days of meals for your calorie target. Tap “I ate this” and the meal goes straight into today&apos;s journal.
+        Not keen on a dish? Tap “Swap” to pick another.
       </p>
 
       <div className="mt-5 space-y-4">
@@ -143,7 +165,10 @@ export default function PlansPage() {
             type="button"
             aria-selected={day === i}
             aria-label={name}
-            onClick={() => setDay(i)}
+            onClick={() => {
+              setDay(i);
+              setSwapping(null);
+            }}
             className={`min-h-11 min-w-12 flex-1 rounded-lg text-sm font-semibold ${
               day === i ? "bg-leaf text-white" : "text-muted hover:text-ink"
             }`}
@@ -171,15 +196,60 @@ export default function PlansPage() {
             </div>
             <div className="card mt-2 px-4">
               <ul>
-                {m.items.map((i) => (
-                  <li key={i.name} className="flex items-start gap-3 border-b border-line py-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-ink">{i.name}</p>
-                      <p className="text-sm text-muted">{i.portion}</p>
-                    </div>
-                    <span className="tabular-nums text-ink">{i.calories}</span>
-                  </li>
-                ))}
+                {m.items.map((i, n) => {
+                  const main = n === 0 && swappable(m.meal) ? m.meal : null;
+                  const swapped = main !== null && daySwaps[main] !== undefined;
+                  return (
+                    <li key={i.name} className="border-b border-line py-3">
+                      <div className="flex items-start gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-ink">{i.name}</p>
+                          <p className="text-sm text-muted">{i.portion}</p>
+                        </div>
+                        <span className="tabular-nums text-ink">{i.calories}</span>
+                      </div>
+                      {main && !done ? (
+                        <div className="mt-1 flex gap-4">
+                          <button
+                            type="button"
+                            className="min-h-9 text-sm font-semibold text-leaf hover:underline"
+                            aria-expanded={swapping === main}
+                            onClick={() => setSwapping(swapping === main ? null : main)}
+                          >
+                            {swapping === main ? "Keep this" : "Swap"}
+                          </button>
+                          {swapped ? (
+                            <button
+                              type="button"
+                              className="min-h-9 text-sm font-semibold text-muted hover:underline"
+                              onClick={() => swap(main, null)}
+                            >
+                              Back to the plan&apos;s choice
+                            </button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                      {main && swapping === main ? (
+                        <ul className="mt-1 rounded-xl bg-leaf-soft p-1" aria-label={`Other ${MEAL_LABEL[main].toLowerCase()} choices`}>
+                          {mainOptions(diet, main).map((o, index) =>
+                            o.name === i.name ? null : (
+                              <li key={o.name}>
+                                <button
+                                  type="button"
+                                  className="flex min-h-11 w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-sm text-ink hover:bg-card"
+                                  onClick={() => swap(main, index)}
+                                >
+                                  <span className="min-w-0 flex-1">{o.name}</span>
+                                  <span className="tabular-nums text-muted">{o.calories}</span>
+                                </button>
+                              </li>
+                            ),
+                          )}
+                        </ul>
+                      ) : null}
+                    </li>
+                  );
+                })}
               </ul>
               <button
                 type="button"
@@ -198,9 +268,12 @@ export default function PlansPage() {
         {notAdded.length === meals.length ? "Add the whole day to today’s journal" : notAdded.length ? "Add the rest of the day" : "The whole day is in your journal"}
       </button>
 
+      <Link href="/journal/plans/shopping" className="btn-quiet mt-3 w-full">
+        Shopping list for the week
+      </Link>
+
       <p className="mt-6 text-sm text-muted">
-        Calorie and nutrition figures are estimates for the amounts shown. Swap any meal for another day&apos;s if you
-        prefer it. These plans are general guidance and not medical advice.
+        Calorie and nutrition figures are estimates for the amounts shown. These plans are general guidance and not medical advice.
       </p>
     </>
   );

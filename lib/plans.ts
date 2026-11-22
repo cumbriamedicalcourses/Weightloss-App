@@ -177,12 +177,22 @@ const DINNER_EXTRA: Row[] = [
 
 const pick = (rows: Row[], day: number) => item(rows[day % rows.length]);
 
-/** The meals for one day (0 = Monday) of a plan. */
-export function planDay(diet: Diet, band: Band, day: number): PlanMeal[] {
+export type MainMeal = "breakfast" | "lunch" | "dinner";
+/** Which of the seven main dishes to use for a meal, in place of the day's own. */
+export type Swaps = Partial<Record<MainMeal, number>>;
+
+/** The seven main dishes a meal can be swapped between. */
+export function mainOptions(diet: Diet, meal: MainMeal): PlanItem[] {
+  return MAINS[diet][meal].map(item);
+}
+
+/** The meals for one day (0 = Monday) of a plan, with any swaps applied. */
+export function planDay(diet: Diet, band: Band, day: number, swaps: Swaps = {}): PlanMeal[] {
   const mains = MAINS[diet];
-  const breakfast = [item(mains.breakfast[day])];
-  const lunch = [item(mains.lunch[day])];
-  const dinner = [item(mains.dinner[day])];
+  const main = (meal: MainMeal) => item(mains[meal][swaps[meal] ?? day] ?? mains[meal][day]);
+  const breakfast = [main("breakfast")];
+  const lunch = [main("lunch")];
+  const dinner = [main("dinner")];
   const snack = [pick(SNACK_LIGHT, day)];
   if (band >= 1500) {
     snack.push(pick(SNACK_MEDIUM, day));
