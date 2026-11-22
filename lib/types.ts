@@ -20,6 +20,8 @@ export interface Profile {
   /** The day the person wants to reach their goal by (YYYY-MM-DD), when they chose a date rather than a pace. */
   targetDate?: string | null;
   exerciseLevel?: ExerciseLevel;
+  /** Which reminders the person wants. Missing means the defaults. */
+  reminders?: { log: boolean; weigh: boolean; email?: boolean; lastEmail?: string };
   /** Foods the person has starred for quick logging. */
   favourites?: Favourite[];
   /** Meals and recipes the person has saved to log again in one tap. */

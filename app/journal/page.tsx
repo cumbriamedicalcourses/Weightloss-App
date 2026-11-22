@@ -1,5 +1,6 @@
 "use client";
 
+import { nudgeFor, remindersOf } from "@/lib/reminders";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import AddExercise from "@/components/add-exercise";
@@ -48,7 +49,17 @@ function Row({ entry, onDelete }: { entry: Entry; onDelete: () => void }) {
 }
 
 export default function TodayPage() {
-  const { user, profile, target, currentKg } = useJournal();
+  const { user, profile, weights, target, currentKg } = useJournal();
+  // The journal only renders in the browser after sign-in, so reading storage here is safe.
+  const [dismissed, setDismissed] = useState<string | null>(() => {
+    try {
+      const raw = localStorage.getItem("wlj:nudge");
+      const day = dayKey();
+      return raw?.startsWith(`${day}|`) ? raw.slice(day.length + 1) : null;
+    } catch {
+      return null;
+    }
+  });
   const [date, setDate] = useState(dayKey);
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [sheet, setSheet] = useState<"food" | "exercise" | "drink" | null>(null);
@@ -104,6 +115,19 @@ export default function TodayPage() {
     }
   }
 
+  // One reminder at most, only on today's page, and "Not now" hides it for the rest of the day.
+  const today = dayKey();
+  const nudge =
+    profile && isToday && entries
+      ? nudgeFor({ reminders: remindersOf(profile), weights, todayEntries: entries, today, hour: new Date().getHours() })
+      : null;
+  function dismiss(id: string) {
+    setDismissed(id);
+    try {
+      localStorage.setItem("wlj:nudge", `${today}|${id}`);
+    } catch {}
+  }
+
   function go(n: number) {
     setEntries(null);
     setDate((d) => addDays(d, n));
@@ -126,6 +150,23 @@ export default function TodayPage() {
           ›
         </button>
       </div>
+
+      {nudge && dismissed !== nudge.id ? (
+        <section className="mt-4 rounded-2xl border border-clay/40 bg-clay-soft px-5 py-4" aria-label="Reminder">
+          <p className="font-semibold text-ink">{nudge.title}</p>
+          <p className="mt-0.5 text-sm text-ink">{nudge.body}</p>
+          <div className="mt-3 flex items-center gap-4">
+            {nudge.href ? (
+              <Link href={nudge.href} className="btn">{nudge.action}</Link>
+            ) : (
+              <button type="button" className="btn" onClick={() => setSheet("food")}>{nudge.action}</button>
+            )}
+            <button type="button" className="min-h-11 text-sm font-semibold text-muted hover:text-ink" onClick={() => dismiss(nudge.id)}>
+              Not now
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-4 rounded-2xl bg-leaf px-5 py-4 text-white" aria-label="Your target">
         <div className="flex items-baseline justify-between gap-3">
