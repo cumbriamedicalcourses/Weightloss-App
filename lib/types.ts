@@ -30,6 +30,10 @@ export interface Profile {
   water?: Record<string, number>;
   /** Body measurements in centimetres, by day (YYYY-MM-DD). */
   measurements?: Record<string, Measurement>;
+  /** Steps walked, by day (YYYY-MM-DD), entered by hand. */
+  steps?: Record<string, number>;
+  /** The person's daily step goal. Missing means the default. */
+  stepGoal?: number;
   /** Weight-loss injections, for people who use them. */
   glp1?: Glp1;
 }

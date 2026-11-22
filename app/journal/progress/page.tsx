@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import MeasurementsCard from "@/components/measurements-card";
+import { StepsWeek } from "@/components/steps-card";
 import ProgressPhotos from "@/components/progress-photos";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { WeightInput } from "@/components/weight-input";
@@ -268,6 +269,8 @@ export default function ProgressPage() {
           BMI {bmi(currentKg, profile.heightCm).toFixed(1)}. Weigh in at the same time of day for a fair comparison.
         </p>
       </section>
+
+      <StepsWeek />
 
       <MeasurementsCard />
 
