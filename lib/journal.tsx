@@ -3,7 +3,9 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useAuth, type SessionUser } from "./auth";
 import { dailyTarget } from "./calc";
+import { dayKey } from "./dates";
 import { store } from "./store";
+import { withLivePace } from "./target";
 import type { Profile, WeightLog } from "./types";
 
 interface JournalState {
@@ -43,7 +45,8 @@ export function JournalProvider({
   const value = useMemo<JournalState | null>(() => {
     if (!user || profile === undefined) return null;
     const currentKg = weights.at(-1)?.kg ?? profile?.startWeightKg ?? 0;
-    const target = profile ? dailyTarget(profile, currentKg, new Date().getFullYear()) : 0;
+    // The pace follows the chosen date week by week, so the target does too.
+    const target = profile ? dailyTarget(withLivePace(profile, currentKg, dayKey()), currentKg, new Date().getFullYear()) : 0;
     return { user, profile, weights, currentKg, target };
   }, [user, profile, weights]);
 

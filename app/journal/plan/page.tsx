@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { exerciseCalories, formatWeight, proteinTarget } from "@/lib/calc";
+import { weeklyCheckIn } from "@/lib/checkin";
+import { planReview } from "@/lib/plan-review";
 import { addDays, dayKey, parseDay } from "@/lib/dates";
 import { levelOf, sessions, weeklyMinutes } from "@/lib/exercise-plan";
 import { useJournal } from "@/lib/journal";
@@ -12,18 +14,46 @@ import { target as planTarget } from "@/lib/target";
 import type { Entry } from "@/lib/types";
 
 export default function PlanPage() {
-  const { user, profile, currentKg, target } = useJournal();
+  const { user, profile, weights, currentKg, target } = useJournal();
   const today = dayKey();
   // Monday is day 0 in the plan; JavaScript counts from Sunday.
   const todayIndex = (parseDay(today).getDay() + 6) % 7;
   const monday = addDays(today, -todayIndex);
   const [week, setWeek] = useState<Entry[]>([]);
 
+  const [recent, setRecent] = useState<Entry[]>([]);
+
   useEffect(() => store.watchEntries(user.uid, monday, addDays(monday, 6), setWeek), [user.uid, monday]);
+  // The review looks back over the last seven days, which can cross into last week.
+  const from = addDays(today, -6);
+  useEffect(() => store.watchEntries(user.uid, from, today, setRecent), [user.uid, from, today]);
+
+  const unit = profile?.weightUnit ?? "kg";
+  const review = useMemo(() => {
+    if (!profile) return null;
+    const plan = planTarget(profile, currentKg, today);
+    const longDate = (d: string) => parseDay(d).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+    return planReview({
+      checkIn: weeklyCheckIn({
+        entries: recent,
+        weights,
+        today,
+        target,
+        proteinGoal: proteinTarget(currentKg),
+        formatWeight: (kg) => formatWeight(kg, unit),
+      }),
+      plan,
+      target,
+      plannedMinutes: weeklyMinutes(profile.exerciseLevel),
+      formatWeight: (kg) => formatWeight(kg, unit),
+      formatDate: longDate,
+      goalKg: profile.goalWeightKg,
+      chosenDate: profile.targetDate ?? null,
+    });
+  }, [profile, recent, weights, today, target, currentKg, unit]);
 
   if (!profile) return null;
 
-  const unit = profile.weightUnit;
   const plan = planTarget(profile, currentKg, today);
   const level = levelOf(profile.exerciseLevel);
   const list = sessions(profile.exerciseLevel);
@@ -42,6 +72,20 @@ export default function PlanPage() {
         ‹ Today
       </Link>
       <h1 className="mt-2 font-display text-2xl text-ink">Your plan</h1>
+
+      {review ? (
+        <section
+          className={`mt-4 rounded-2xl border p-5 ${review.status === "behind" || review.status === "fast" ? "border-clay/40 bg-clay-soft" : "border-leaf/40 bg-leaf-soft"}`}
+          aria-label="This week's update"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">This week&apos;s update</p>
+          <h2 className="mt-1 font-semibold text-ink">{review.title}</h2>
+          <p className="mt-1 text-ink">{review.body}</p>
+          {review.changes.map((c) => (
+            <p key={c} className="mt-2 text-sm text-ink">{c}</p>
+          ))}
+        </section>
+      ) : null}
 
       <section className="card mt-4 p-5" aria-label="Target">
         <h2 className="font-semibold text-ink">Target</h2>
