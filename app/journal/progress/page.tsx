@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import MarkersCard from "@/components/markers-card";
 import MeasurementsCard from "@/components/measurements-card";
 import ProgressPhotos from "@/components/progress-photos";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
@@ -270,6 +271,8 @@ export default function ProgressPage() {
       </section>
 
       <MeasurementsCard />
+
+      <MarkersCard />
 
       <ProgressPhotos />
 

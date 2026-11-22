@@ -16,7 +16,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { firebaseEnabled, firestore } from "./firebase";
-import type { Entry, Favourite, Measurement, NewEntry, Profile, SavedMeal, WeightLog } from "./types";
+import type { Entry, Favourite, Markers, Measurement, NewEntry, Profile, SavedMeal, WeightLog } from "./types";
 
 type Unsub = () => void;
 
@@ -31,6 +31,8 @@ export interface Store {
   setWater(uid: string, date: string, glasses: number): Promise<void>;
   /** Saves the measurements for a day, or removes that day when given null. */
   setMeasurement(uid: string, date: string, m: Measurement | null): Promise<void>;
+  /** Saves the health readings for a day, or removes that day when given null. */
+  setMarkers(uid: string, date: string, m: Markers | null): Promise<void>;
   /** Entries with from <= date <= to (YYYY-MM-DD). */
   watchEntries(uid: string, from: string, to: string, cb: (e: Entry[]) => void): Unsub;
   addEntry(uid: string, e: NewEntry): Promise<void>;
@@ -68,6 +70,7 @@ const firestoreStore: Store = {
     delete fields.savedMeals;
     delete fields.water;
     delete fields.measurements;
+    delete fields.markers;
     await setDoc(doc(firestore(), "users", uid), clean(fields), { merge: true });
   },
   async setFavourites(uid, list) {
@@ -83,6 +86,9 @@ const firestoreStore: Store = {
   async setMeasurement(uid, date, m) {
     // A merge would keep sites that were cleared, so the day is replaced whole.
     void updateDoc(doc(firestore(), "users", uid), { [`measurements.${date}`]: m ? clean(m) : deleteField() });
+  },
+  async setMarkers(uid, date, m) {
+    void updateDoc(doc(firestore(), "users", uid), { [`markers.${date}`]: m ? clean(m) : deleteField() });
   },
   watchEntries(uid, from, to, cb) {
     const q = query(
@@ -193,7 +199,7 @@ function watch(run: () => void): Unsub {
 const localStore: Store = {
   watchProfile: (uid, cb) => watch(() => cb(read(uid).profile)),
   async saveProfile(uid, p) {
-    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites, savedMeals: d.profile?.savedMeals, water: d.profile?.water, measurements: d.profile?.measurements }));
+    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites, savedMeals: d.profile?.savedMeals, water: d.profile?.water, measurements: d.profile?.measurements, markers: d.profile?.markers }));
   },
   async setFavourites(uid, list) {
     write(uid, (d) => {
@@ -217,6 +223,15 @@ const localStore: Store = {
       if (m) next[date] = m;
       else delete next[date];
       d.profile.measurements = next;
+    });
+  },
+  async setMarkers(uid, date, m) {
+    write(uid, (d) => {
+      if (!d.profile) return;
+      const next = { ...d.profile.markers };
+      if (m) next[date] = m;
+      else delete next[date];
+      d.profile.markers = next;
     });
   },
   watchEntries: (uid, from, to, cb) =>

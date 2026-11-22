@@ -30,6 +30,20 @@ export interface Profile {
   water?: Record<string, number>;
   /** Body measurements in centimetres, by day (YYYY-MM-DD). */
   measurements?: Record<string, Measurement>;
+  /** Health readings such as blood pressure, by day (YYYY-MM-DD). */
+  markers?: Record<string, Markers>;
+}
+
+/** Health readings. Any of them can be left out. */
+export interface Markers {
+  /** Blood pressure in mmHg. */
+  systolic?: number;
+  diastolic?: number;
+  /** HbA1c in mmol/mol. */
+  hba1c?: number;
+  /** Cholesterol in mmol/L. */
+  totalChol?: number;
+  hdl?: number;
 }
 
 /** Tape measurements in centimetres. Any of them can be left out. */

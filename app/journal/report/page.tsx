@@ -9,6 +9,7 @@ import { addDays, dayKey, parseDay } from "@/lib/dates";
 import { WEEKLY_UNIT_GUIDE } from "@/lib/drinks";
 import { levelOf, weeklyMinutes } from "@/lib/exercise-plan";
 import { formatLength, lengthUnit } from "@/lib/measurements";
+import { latestWith, markerDays } from "@/lib/markers";
 import { REPORT_DAYS, buildReport } from "@/lib/report";
 import type { Entry } from "@/lib/types";
 
@@ -51,6 +52,10 @@ export default function ReportPage() {
   const change = (kg: number) => (kg === 0 ? "no change" : `${kg < 0 ? "down" : "up"} ${w(Math.abs(kg))}`);
   const age = new Date().getFullYear() - profile.birthYear;
   const planned = weeklyMinutes(profile.exerciseLevel);
+  const marked = markerDays(profile);
+  const bp = latestWith(marked, "systolic", "diastolic");
+  const hba1c = latestWith(marked, "hba1c");
+  const chol = latestWith(marked, "totalChol");
 
   return (
     <>
@@ -123,6 +128,20 @@ export default function ReportPage() {
             </table>
           ) : null}
         </Block>
+
+        {bp || hba1c || chol ? (
+          <Block title="Health markers (self-reported)">
+            <dl>
+              {bp ? <Row label={`Blood pressure (${longDate(bp.latest.date)})`}>{bp.latest.systolic}/{bp.latest.diastolic} mmHg</Row> : null}
+              {hba1c ? <Row label={`HbA1c (${longDate(hba1c.latest.date)})`}>{hba1c.latest.hba1c} mmol/mol</Row> : null}
+              {chol ? (
+                <Row label={`Cholesterol (${longDate(chol.latest.date)})`}>
+                  {chol.latest.totalChol} total{chol.latest.hdl !== undefined ? `, ${chol.latest.hdl} HDL` : ""} mmol/L
+                </Row>
+              ) : null}
+            </dl>
+          </Block>
+        ) : null}
 
         <Block title={`Last ${REPORT_DAYS} days`}>
           <dl>
