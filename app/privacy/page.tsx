@@ -15,7 +15,7 @@ const BODY: Block[] = [
   { list: [
     "Your account: your email address and first name, and your basic Google profile if you sign in with Google. Passwords are handled by Google's sign-in service and we never see them.",
     "Your profile: sex, year of birth, height, weight, goal weight, activity level and chosen pace. These are used to work out your daily calorie target.",
-    "Your journal: the food, drink and exercise you log, your water count, your weigh-ins, the foods you mark as favourites, and the meals and recipes you save.",
+    "Your journal: the food, drink and exercise you log, your water count, your weigh-ins, the foods you mark as favourites, and the meals and recipes you save, any body measurements you enter, and, if you choose to use it, the weight-loss injection you use and the dates you took it.",
     "Photos and descriptions of meals, only for the moment it takes to estimate them. They are not saved in your journal or on our servers.",
     "Progress photos, if you add them, are kept only in the browser on your own device. They are never sent to us or to anyone else, and deleting your account on that device removes them.",
   ] },

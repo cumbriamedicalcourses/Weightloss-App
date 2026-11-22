@@ -16,7 +16,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { firebaseEnabled, firestore } from "./firebase";
-import type { Entry, Favourite, Measurement, NewEntry, Profile, SavedMeal, WeightLog } from "./types";
+import type { Entry, Favourite, Injection, Measurement, NewEntry, Profile, SavedMeal, WeightLog } from "./types";
 
 type Unsub = () => void;
 
@@ -31,6 +31,10 @@ export interface Store {
   setWater(uid: string, date: string, glasses: number): Promise<void>;
   /** Saves the measurements for a day, or removes that day when given null. */
   setMeasurement(uid: string, date: string, m: Measurement | null): Promise<void>;
+  /** Sets the injection medicine, or clears the whole injection record when given null. */
+  setGlp1Medicine(uid: string, medicine: string | null): Promise<void>;
+  /** Saves an injection for a day, or removes that day when given null. */
+  setInjection(uid: string, date: string, i: Injection | null): Promise<void>;
   /** Entries with from <= date <= to (YYYY-MM-DD). */
   watchEntries(uid: string, from: string, to: string, cb: (e: Entry[]) => void): Unsub;
   addEntry(uid: string, e: NewEntry): Promise<void>;
@@ -68,6 +72,7 @@ const firestoreStore: Store = {
     delete fields.savedMeals;
     delete fields.water;
     delete fields.measurements;
+    delete fields.glp1;
     await setDoc(doc(firestore(), "users", uid), clean(fields), { merge: true });
   },
   async setFavourites(uid, list) {
@@ -83,6 +88,12 @@ const firestoreStore: Store = {
   async setMeasurement(uid, date, m) {
     // A merge would keep sites that were cleared, so the day is replaced whole.
     void updateDoc(doc(firestore(), "users", uid), { [`measurements.${date}`]: m ? clean(m) : deleteField() });
+  },
+  async setGlp1Medicine(uid, medicine) {
+    void updateDoc(doc(firestore(), "users", uid), medicine ? { "glp1.medicine": medicine } : { glp1: deleteField() });
+  },
+  async setInjection(uid, date, i) {
+    void updateDoc(doc(firestore(), "users", uid), { [`glp1.log.${date}`]: i ? clean(i) : deleteField() });
   },
   watchEntries(uid, from, to, cb) {
     const q = query(
@@ -193,7 +204,7 @@ function watch(run: () => void): Unsub {
 const localStore: Store = {
   watchProfile: (uid, cb) => watch(() => cb(read(uid).profile)),
   async saveProfile(uid, p) {
-    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites, savedMeals: d.profile?.savedMeals, water: d.profile?.water, measurements: d.profile?.measurements }));
+    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites, savedMeals: d.profile?.savedMeals, water: d.profile?.water, measurements: d.profile?.measurements, glp1: d.profile?.glp1 }));
   },
   async setFavourites(uid, list) {
     write(uid, (d) => {
@@ -217,6 +228,22 @@ const localStore: Store = {
       if (m) next[date] = m;
       else delete next[date];
       d.profile.measurements = next;
+    });
+  },
+  async setGlp1Medicine(uid, medicine) {
+    write(uid, (d) => {
+      if (!d.profile) return;
+      if (medicine) d.profile.glp1 = { ...d.profile.glp1, medicine };
+      else delete d.profile.glp1;
+    });
+  },
+  async setInjection(uid, date, i) {
+    write(uid, (d) => {
+      if (!d.profile) return;
+      const log = { ...d.profile.glp1?.log };
+      if (i) log[date] = i;
+      else delete log[date];
+      d.profile.glp1 = { ...d.profile.glp1, log };
     });
   },
   watchEntries: (uid, from, to, cb) =>

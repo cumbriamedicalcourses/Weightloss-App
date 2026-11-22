@@ -30,6 +30,20 @@ export interface Profile {
   water?: Record<string, number>;
   /** Body measurements in centimetres, by day (YYYY-MM-DD). */
   measurements?: Record<string, Measurement>;
+  /** Weight-loss injections, for people who use them. */
+  glp1?: Glp1;
+}
+
+export interface Glp1 {
+  /** Which medicine: semaglutide, tirzepatide, liraglutide or other. */
+  medicine?: string;
+  /** Injections by day (YYYY-MM-DD). */
+  log?: Record<string, Injection>;
+}
+
+/** A logged injection. Only the day is recorded, as the key it is stored under. */
+export interface Injection {
+  taken: true;
 }
 
 /** Tape measurements in centimetres. Any of them can be left out. */

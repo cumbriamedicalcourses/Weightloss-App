@@ -304,6 +304,18 @@ export default function ProgressPage() {
         </div>
       </section>
 
+      <section className="card mt-4 p-5" aria-label="Weight-loss injections">
+        <h2 className="font-semibold text-ink">Weight-loss injections</h2>
+        <p className="mt-1 text-sm text-muted">
+          {profile.glp1?.medicine
+            ? "Your record of the dates you took each injection."
+            : "On Wegovy, Mounjaro or Saxenda? Keep a record of the date you take each injection."}
+        </p>
+        <Link href="/journal/injections" className="btn-quiet mt-4 w-full">
+          {profile.glp1?.medicine ? "Open my injections" : "Start an injection record"}
+        </Link>
+      </section>
+
       <section className="card mt-4 p-5" aria-label="Report for your GP">
         <h2 className="font-semibold text-ink">Report for your GP</h2>
         <p className="mt-1 text-sm text-muted">
