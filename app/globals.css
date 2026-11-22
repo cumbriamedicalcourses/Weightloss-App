@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f5efe3;
+  --color-card: #fffdf8;
+  --color-ink: #1f2a24;
+  --color-muted: #5f6b63;
+  --color-line: #e2d9c6;
+  --color-leaf: #2f6b4f;
+  --color-leaf-dark: #235340;
+  --color-leaf-soft: #e3eee6;
+  --color-clay: #b9472f;
+  --color-clay-soft: #f7e4dc;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Form controls share one look across the app. */
+.field {
+  @apply w-full rounded-xl border border-line bg-card px-3.5 py-3 text-base text-ink outline-none transition placeholder:text-muted/70 focus:border-leaf focus:ring-2 focus:ring-leaf/25;
+}
+.label {
+  @apply mb-1.5 block text-sm font-medium text-ink;
+}
+.btn {
+  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-leaf px-5 text-base font-semibold text-white transition hover:bg-leaf-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf disabled:cursor-not-allowed disabled:opacity-50;
+}
+.btn-quiet {
+  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-line bg-card px-5 text-base font-semibold text-ink transition hover:border-leaf focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf disabled:cursor-not-allowed disabled:opacity-50;
+}
+.card {
+  @apply rounded-2xl border border-line bg-card;
+}
+
+/* Bottom sheets are native dialogs, so focus and Escape work for free. */
+dialog.sheet {
+  @apply m-0 mt-auto max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-t-3xl border border-line bg-paper p-0 text-ink sm:m-auto sm:rounded-3xl;
+  margin-inline: auto;
+}
+dialog.sheet::backdrop {
+  background: rgb(31 42 36 / 0.45);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog.sheet[open] {
+    animation: sheet-in 180ms ease-out;
+  }
+  @keyframes sheet-in {
+    from {
+      transform: translateY(16px);
+      opacity: 0;
+    }
+  }
+}
