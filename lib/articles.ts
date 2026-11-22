@@ -1,0 +1,212 @@
+export interface Block {
+  /** A sub-heading. */
+  h?: string;
+  /** A paragraph. */
+  p?: string;
+  /** A bulleted list. */
+  list?: string[];
+}
+
+export interface Article {
+  slug: string;
+  title: string;
+  summary: string;
+  topic: string;
+  minutes: number;
+  /** Optional embed address of a video shown above the text. */
+  video?: string;
+  body: Block[];
+}
+
+export const TOPICS = ["Getting started", "Food", "Staying on track", "Body and mind"];
+
+export const ARTICLES: Article[] = [
+  {
+    slug: "how-weight-loss-works",
+    title: "How weight loss works",
+    summary: "Calories in, calories out, and why a small daily gap adds up to steady loss.",
+    topic: "Getting started",
+    minutes: 3,
+    body: [
+      { p: "Your body uses energy all day: to keep you warm, to keep your heart beating, to digest food and to move. That energy is measured in calories. Food and drink put calories in, and living and moving take calories out." },
+      { p: "When you take in fewer calories than you use, your body makes up the difference from its stores, and over time you lose weight. This gap is called a calorie deficit. Every method of losing weight, whatever its name, works by creating one." },
+      { h: "How big should the gap be?" },
+      { p: "A kilogram of body fat holds roughly 7,700 calories. A daily gap of about 500 calories therefore adds up to around half a kilogram a week. That is the pace most health services recommend, because it is fast enough to see progress and gentle enough to keep up." },
+      { p: "Bigger gaps bring faster loss at first, but they also bring hunger, tiredness and loss of muscle, and they are much harder to sustain. Most people do better with a moderate target they can keep for months." },
+      { h: "Where your target comes from" },
+      { p: "The journal estimates how many calories you use in a day from your age, sex, height, weight and how active you are. It then subtracts the gap needed for the pace you chose. The result is your daily target." },
+      { p: "It is an estimate, and so is every calorie count on a label or in an app. That does not matter as much as it sounds. What matters is writing things down consistently, watching the trend in your weight over a few weeks, and adjusting if it is not moving." },
+      { h: "What to do today" },
+      { list: ["Write down everything you eat and drink, including the small things.", "Do not aim for a perfect day. Aim for an honest one.", "Look at the week, not the day."] },
+    ],
+  },
+  {
+    slug: "setting-a-realistic-goal",
+    title: "Setting a goal you can reach",
+    summary: "Why a modest first goal beats an ambitious one, and how to choose your pace.",
+    topic: "Getting started",
+    minutes: 3,
+    body: [
+      { p: "It is tempting to set the biggest goal you can imagine and the shortest time to reach it. The trouble is that a goal which feels impossibly far away stops being motivating after the first hard week." },
+      { h: "Start with 5 to 10 per cent" },
+      { p: "Losing 5 to 10 per cent of your starting weight is a good first goal. For someone who weighs 90 kg, that is 4.5 to 9 kg. Loss on this scale is linked with real improvements in blood pressure, blood sugar and joint pain, and it is achievable for most people in three to six months." },
+      { p: "When you reach it, you can hold steady for a while or set the next goal. Losing weight in stages is still losing weight." },
+      { h: "Choose a pace you can live with" },
+      { p: "Between a quarter and one kilogram a week is a sensible range. A slower pace leaves you more food each day and is easier to keep up. A faster pace needs more discipline and suits a shorter period." },
+      { p: "If your target leaves you hungry and irritable most days, the pace is too fast for you. Slowing down is not failing. The pace you can keep is the one that works." },
+      { h: "Measure more than the scales" },
+      { list: ["How your clothes fit.", "Your waist measurement.", "How far you can walk, or how many stairs you can climb, without stopping.", "How many days this week you kept your journal."] },
+      { p: "These often improve in weeks when the scales do not move, and they are just as real." },
+    ],
+  },
+  {
+    slug: "why-the-scales-go-up-and-down",
+    title: "Why the scales go up and down",
+    summary: "Daily weight changes are mostly water. Here is how to read the trend instead.",
+    topic: "Staying on track",
+    minutes: 3,
+    body: [
+      { p: "You have a careful day, step on the scales the next morning and find you are half a kilogram heavier. It is one of the most discouraging moments in losing weight, and it almost never means what it seems to." },
+      { h: "Most daily change is water" },
+      { p: "Body weight can move by one or two kilograms from one day to the next without any change in body fat. Common reasons include:" },
+      { list: ["A salty meal, which makes your body hold on to water.", "More carbohydrate than usual, which is stored with water.", "Hard exercise, which leaves muscles holding fluid while they recover.", "The menstrual cycle.", "Constipation, or simply the weight of food still being digested."] },
+      { p: "To gain half a kilogram of fat overnight, you would need to eat about 3,800 calories more than you used. One meal out does not do that." },
+      { h: "How to weigh yourself" },
+      { list: ["Use the same scales, on a hard floor.", "Weigh first thing in the morning, after using the toilet and before eating or drinking.", "Wear the same thing each time, or nothing."] },
+      { p: "Some people like to weigh every day and others once a week. Either works, as long as you compare like with like." },
+      { h: "Read the trend" },
+      { p: "Look at your Progress chart over three or four weeks. If the line is heading down, your plan is working, whatever today's number says. If it has been flat for a month, it is time to review your portions and your activity." },
+    ],
+  },
+  {
+    slug: "getting-past-a-plateau",
+    title: "Getting past a plateau",
+    summary: "What to check when your weight has not moved for a few weeks.",
+    topic: "Staying on track",
+    minutes: 4,
+    body: [
+      { p: "Almost everyone who loses weight reaches a point where it stalls. A plateau is three or four weeks with no change in the trend. A few flat days is not a plateau, it is ordinary variation." },
+      { h: "Why it happens" },
+      { p: "A lighter body uses fewer calories, so the target that created a gap at the start creates a smaller one now. At the same time, habits drift. Portions grow a little, and the snacks that used to be written down are forgotten." },
+      { h: "Five things to check" },
+      { list: [
+        "Update your weight in the journal so your target is recalculated for the body you have now.",
+        "Weigh your food for one week. Cereals, rice, pasta, oils, cheese and nut butters are the usual surprises.",
+        "Count drinks. Milky coffees, juice and alcohol add up quickly.",
+        "Look at weekends. Five careful days can be cancelled out by two relaxed ones.",
+        "Add movement. An extra 20 to 30 minutes of brisk walking a day makes a measurable difference over a month.",
+      ] },
+      { h: "Look after your muscle" },
+      { p: "Eating enough protein and doing some strength exercise twice a week helps you keep muscle while you lose fat. Muscle uses more energy than fat, and it is what keeps you strong and steady as the weight comes off." },
+      { h: "When to pause" },
+      { p: "If you have been losing weight for several months and feel worn down, a few weeks of eating at your maintenance level can help. You hold your weight, rest from the effort, and start again with more energy. Holding steady is a skill you will need at your goal weight in any case." },
+    ],
+  },
+  {
+    slug: "protein-and-feeling-full",
+    title: "Protein, fibre and feeling full",
+    summary: "The foods that keep hunger away for longest on the fewest calories.",
+    topic: "Food",
+    minutes: 3,
+    body: [
+      { p: "Two meals with the same calories can leave you feeling very different two hours later. What a meal is made of decides how long it keeps you full." },
+      { h: "Protein" },
+      { p: "Protein is the most filling of the three main nutrients, and it protects your muscles while you lose weight. The journal suggests a daily protein goal based on your weight and shows your progress towards it on the Today screen." },
+      { p: "Good sources include chicken, fish, eggs, Greek yoghurt, cottage cheese, tofu, lentils, beans and chickpeas. Aim to include one at every meal, not only at dinner." },
+      { h: "Fibre" },
+      { p: "Fibre adds bulk and slows digestion. Vegetables, fruit, beans, lentils, oats and wholegrain bread, rice and pasta are all good sources. Most adults in the UK eat well under the recommended 30 g a day." },
+      { h: "Volume" },
+      { p: "Foods with a lot of water in them fill the stomach for few calories. A large bowl of vegetable soup, a salad or a plate half covered in vegetables lets you eat a satisfying amount while staying within your target." },
+      { h: "Simple swaps" },
+      { list: [
+        "Add an egg or yoghurt to breakfast in place of a second slice of toast.",
+        "Fill half your plate with vegetables before adding the rest.",
+        "Choose whole fruit over juice.",
+        "Keep a high protein snack ready for the time of day you usually get hungry.",
+      ] },
+    ],
+  },
+  {
+    slug: "eating-out",
+    title: "Eating out without losing track",
+    summary: "How to enjoy restaurants, takeaways and celebrations and still keep your journal.",
+    topic: "Food",
+    minutes: 3,
+    body: [
+      { p: "Losing weight should not mean turning down every invitation. Meals out are part of life, and a plan that cannot cope with them will not last." },
+      { h: "Before you go" },
+      { list: ["Look at the menu online and choose in advance, while you are not hungry.", "Eat normally earlier in the day. Arriving very hungry makes every choice harder.", "If you know it will be a bigger meal, a lighter lunch leaves room for it."] },
+      { h: "At the table" },
+      { list: [
+        "Grilled, baked or steamed dishes are usually lighter than fried or creamy ones.",
+        "Ask for sauces and dressings on the side.",
+        "Choose either a starter or a dessert, or share one.",
+        "Drinks count. Alternate alcoholic drinks with water.",
+        "Stop when you are comfortably full. You do not have to finish the plate.",
+      ] },
+      { h: "Writing it down" },
+      { p: "Restaurant meals are hard to count exactly, and that is fine. Take a photo and let the journal estimate it, or search for the closest match and choose a generous portion. A rough entry is far more useful than a blank day." },
+      { h: "Afterwards" },
+      { p: "One large meal does not undo a week of effort. Go back to your usual routine at the next meal. Do not skip meals the following day to make up for it, because that tends to lead to overeating later." },
+    ],
+  },
+  {
+    slug: "emotional-eating",
+    title: "Eating when you are not hungry",
+    summary: "Stress, boredom and tiredness all send us to the kitchen. How to notice it and what to try.",
+    topic: "Body and mind",
+    minutes: 4,
+    body: [
+      { p: "Much of our eating has little to do with hunger. We eat because we are stressed, bored, tired, lonely or celebrating, or simply because the food is there. This is normal, and noticing it is the first step to changing it." },
+      { h: "Two kinds of hunger" },
+      { p: "Physical hunger builds gradually, is felt in the stomach, and is satisfied by almost any food. Emotional hunger arrives suddenly, wants one particular food, and is often followed by guilt. Asking which one you are feeling takes only a moment." },
+      { h: "Find your pattern" },
+      { p: "Your journal can help here. Look back over a week or two and ask when the unplanned eating happened. Many people find it clusters at one time of day, in one place or after one kind of event, such as the evening on the sofa or the drive home from work." },
+      { h: "Things to try" },
+      { list: [
+        "Wait ten minutes. Have a glass of water or a cup of tea first, then decide.",
+        "Change what you are doing. A short walk, a phone call or a shower can break the urge.",
+        "Make it less convenient. Food that is out of sight, or not in the house, is eaten far less often.",
+        "Plan for it. If evenings are hard, keep some calories back for a snack you enjoy.",
+        "Eat regular meals. Long gaps make every craving stronger.",
+      ] },
+      { h: "Be kind to yourself" },
+      { p: "Everyone eats for comfort sometimes. Write it down without judgement and carry on. Harsh self-criticism tends to make the next episode more likely, not less." },
+      { h: "When to ask for help" },
+      { p: "If you often feel out of control around food, eat in secret, or make yourself sick or fast to compensate, please speak to your GP. These can be signs of an eating disorder, which is common, treatable and nothing to be ashamed of." },
+    ],
+  },
+  {
+    slug: "sleep-and-weight",
+    title: "Sleep and your weight",
+    summary: "Why a short night makes the next day harder, and how to sleep better.",
+    topic: "Body and mind",
+    minutes: 3,
+    body: [
+      { p: "Sleep is rarely the first thing people think of when they want to lose weight, yet it affects almost everything else. After a short night you are hungrier, you crave sweeter and fattier food, and you have less energy to move and less patience to plan." },
+      { h: "What poor sleep does" },
+      { list: [
+        "It raises the hormone that makes you hungry and lowers the one that tells you that you are full.",
+        "It makes high calorie food more appealing.",
+        "It leaves more waking hours in which to eat.",
+        "It makes exercise feel harder, so you do less of it.",
+      ] },
+      { p: "Most adults need between seven and nine hours a night." },
+      { h: "Habits that help" },
+      { list: [
+        "Go to bed and get up at about the same time every day, including weekends.",
+        "Keep the bedroom dark, quiet and cool.",
+        "Stop caffeine after lunchtime.",
+        "Put screens away for the last half hour before bed.",
+        "Avoid large meals and alcohol late in the evening. Alcohol may help you fall asleep, but it makes sleep lighter and more broken.",
+        "Get outside in daylight during the morning.",
+      ] },
+      { h: "When to see your GP" },
+      { p: "Loud snoring, pauses in breathing during sleep, or feeling very sleepy in the daytime can be signs of sleep apnoea. It is more common in people carrying extra weight, and it is treatable. Mention it to your GP if this sounds like you or your partner has noticed it." },
+    ],
+  },
+];
+
+export function getArticle(slug: string) {
+  return ARTICLES.find((a) => a.slug === slug);
+}

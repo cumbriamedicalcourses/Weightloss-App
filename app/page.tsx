@@ -59,9 +59,14 @@ export default function Home() {
     <>
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-5">
         <span className="font-display text-lg text-ink">My Weight Loss Journal</span>
-        <Link href="/login" className="text-sm font-semibold text-leaf underline-offset-4 hover:underline">
-          Sign in
-        </Link>
+        <nav className="flex items-center gap-5" aria-label="Site">
+          <Link href="/learn" className="text-sm font-semibold text-leaf underline-offset-4 hover:underline">
+            Learn
+          </Link>
+          <Link href="/login" className="text-sm font-semibold text-leaf underline-offset-4 hover:underline">
+            Sign in
+          </Link>
+        </nav>
       </header>
 
       <main className="flex-1">
