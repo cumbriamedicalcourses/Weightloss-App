@@ -5,8 +5,22 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
 import { WeightInput } from "@/components/weight-input";
-import { ACTIVITY_LABEL, UNIT_NAME, dailyTarget, maintenance, safeFloor } from "@/lib/calc";
-import { dayKey } from "@/lib/dates";
+import {
+  ACTIVITY_LABEL,
+  HEALTHY_BMI,
+  MAX_PACE_KG,
+  UNIT_NAME,
+  bmi,
+  dailyTarget,
+  deficitForPace,
+  formatWeight,
+  goalSuggestions,
+  healthyRange,
+  maintenance,
+  paceForDate,
+  safeFloor,
+} from "@/lib/calc";
+import { addDays, dayKey, parseDay } from "@/lib/dates";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
 import type { ActivityLevel, Profile, Sex, WeightUnit } from "@/lib/types";
@@ -33,9 +47,20 @@ export default function ProfilePage() {
   const [goalKg, setGoalKg] = useState<number | null>(profile ? profile.goalWeightKg : null);
   const [activity, setActivity] = useState<ActivityLevel>(profile?.activity ?? "light");
   const [pace, setPace] = useState(profile?.pacePerWeekKg ?? 0.5);
+  const [byDate, setByDate] = useState(Boolean(profile?.targetDate));
+  const [targetDate, setTargetDate] = useState(profile?.targetDate ?? "");
+  const [goalKey, setGoalKey] = useState(0);
   const [custom, setCustom] = useState(profile?.customTarget ? String(profile.customTarget) : "");
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+
+  const today = dayKey();
+  const daysLeft = targetDate ? Math.round((parseDay(targetDate).getTime() - parseDay(today).getTime()) / 86_400_000) : 0;
+  const datePace = weightKg && goalKg ? paceForDate(weightKg, goalKg, daysLeft) : null;
+  // The pace the plan will use: the chosen one, or what the chosen date needs.
+  const plannedPace = byDate ? (datePace !== null && datePace > 0 && datePace <= MAX_PACE_KG ? Math.round(datePace * 100) / 100 : 0) : pace;
+  const earliest = weightKg && goalKg && weightKg > goalKg ? addDays(today, Math.ceil(((weightKg - goalKg) / MAX_PACE_KG) * 7)) : null;
+  const longDate = (d: string) => parseDay(d).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
 
   const draft: Profile | null = (() => {
     const by = Number(birthYear);
@@ -51,14 +76,17 @@ export default function ProfilePage() {
       startWeightKg: profile?.startWeightKg ?? w,
       goalWeightKg: g,
       activity,
-      pacePerWeekKg: pace,
+      pacePerWeekKg: plannedPace,
+      targetDate: byDate && targetDate ? targetDate : null,
       weightUnit: unit,
       customTarget: custom ? Number(custom) : null,
     };
   })();
   const draftKg = weightKg ?? 0;
   const suggested = draft ? dailyTarget({ ...draft, customTarget: null }, draftKg, year) : null;
-  const atFloor = draft && suggested === safeFloor(draft.sex) && maintenance(draft, draftKg, year) - (pace * 7700) / 7 < suggested;
+  const atFloor = draft && suggested === safeFloor(draft.sex) && maintenance(draft, draftKg, year) - deficitForPace(plannedPace) < suggested;
+  const range = Number(height) >= 120 && Number(height) <= 230 ? healthyRange(Number(height)) : null;
+  const ideas = range && weightKg ? goalSuggestions(weightKg, Number(height)) : [];
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -80,6 +108,20 @@ export default function ProfilePage() {
     if (draftKg < 35 || draftKg > 350) {
       setError(`Check your current weight. It should be in ${UNIT_NAME[unit]}.`);
       return;
+    }
+    if (bmi(draft.goalWeightKg, draft.heightCm) < HEALTHY_BMI.min) {
+      setError(`That goal is below a healthy weight for your height. Choose ${formatWeight(healthyRange(draft.heightCm).minKg, unit)} or more.`);
+      return;
+    }
+    if (byDate && draft.goalWeightKg < draftKg) {
+      if (!targetDate || daysLeft <= 0) {
+        setError("Choose a target date in the future.");
+        return;
+      }
+      if (datePace !== null && datePace > MAX_PACE_KG) {
+        setError(`That date needs more than ${MAX_PACE_KG} kg a week, which is faster than is safe to plan for. Choose ${earliest ? longDate(earliest) : "a later date"} or later.`);
+        return;
+      }
     }
     if (draft.customTarget && draft.customTarget < 1000) {
       setError("A daily target below 1,000 kcal isn't safe without medical supervision. Choose a higher number.");
@@ -189,8 +231,34 @@ export default function ProfilePage() {
 
         <div className={`grid gap-3 ${unit === "st" ? "grid-cols-1" : "grid-cols-2"}`}>
           <WeightInput key={`w-${unit}`} id="p-weight" label="Current weight" unit={unit} kg={weightKg} onChange={setWeightKg} />
-          <WeightInput key={`g-${unit}`} id="p-goal" label="Goal weight" unit={unit} kg={goalKg} onChange={setGoalKg} />
+          <WeightInput key={`g-${unit}-${goalKey}`} id="p-goal" label="Goal weight" unit={unit} kg={goalKg} onChange={setGoalKg} />
         </div>
+
+        {range ? (
+          <div className="rounded-xl bg-leaf-soft px-3.5 py-3" aria-live="polite">
+            <p className="text-sm text-ink">
+              A healthy weight for your height is {formatWeight(range.minKg, unit)} to {formatWeight(range.maxKg, unit)}.
+              {ideas.length ? " A first target of 5 to 10% is a good place to start. Tap one to use it:" : ""}
+            </p>
+            {ideas.length ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {ideas.map((s) => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    className="min-h-11 rounded-full border border-leaf bg-card px-4 text-sm font-semibold text-leaf hover:bg-leaf hover:text-white"
+                    onClick={() => {
+                      setGoalKg(s.kg);
+                      setGoalKey((k) => k + 1);
+                    }}
+                  >
+                    {s.label}: {formatWeight(s.kg, unit)}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div>
           <label className="label" htmlFor="p-activity">A typical day, before exercise</label>
@@ -206,14 +274,39 @@ export default function ProfilePage() {
           <legend className="label">Pace</legend>
           <div className="space-y-2">
             {PACES.map((p) => (
-              <label key={p.kg} className={`card flex cursor-pointer items-center gap-3 px-4 py-3 ${pace === p.kg ? "border-leaf ring-2 ring-leaf/25" : ""}`}>
-                <input type="radio" name="pace" className="size-4 accent-leaf" checked={pace === p.kg} onChange={() => setPace(p.kg)} />
+              <label key={p.kg} className={`card flex cursor-pointer items-center gap-3 px-4 py-3 ${!byDate && pace === p.kg ? "border-leaf ring-2 ring-leaf/25" : ""}`}>
+                <input type="radio" name="pace" className="size-4 accent-leaf" checked={!byDate && pace === p.kg} onChange={() => {
+                  setByDate(false);
+                  setPace(p.kg);
+                }} />
                 <span>
                   <span className="font-semibold text-ink">{p.label}</span>
                   <span className="text-muted">, {p.detail}</span>
                 </span>
               </label>
             ))}
+            <label className={`card flex cursor-pointer items-center gap-3 px-4 py-3 ${byDate ? "border-leaf ring-2 ring-leaf/25" : ""}`}>
+              <input type="radio" name="pace" className="size-4 accent-leaf" checked={byDate} onChange={() => setByDate(true)} />
+              <span>
+                <span className="font-semibold text-ink">By a date</span>
+                <span className="text-muted">, I will choose when</span>
+              </span>
+            </label>
+            {byDate ? (
+              <div>
+                <label className="label" htmlFor="p-date">Reach my goal by</label>
+                <input id="p-date" type="date" className="field" min={addDays(today, 7)} value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
+                <p className="mt-1.5 text-sm text-muted" aria-live="polite">
+                  {datePace === null || !targetDate
+                    ? "Enter your weights and a date to see the pace it needs."
+                    : datePace <= 0
+                      ? "You are already at or below this goal."
+                      : datePace > MAX_PACE_KG
+                        ? `That needs more than ${MAX_PACE_KG} kg a week. The earliest date the journal will plan for is ${earliest ? longDate(earliest) : "later"}.`
+                        : `That needs about ${formatWeight(datePace, unit)} a week.`}
+                </p>
+              </div>
+            ) : null}
           </div>
         </fieldset>
 
