@@ -1,6 +1,5 @@
 "use client";
 
-import { injectionDue } from "@/lib/glp1";
 import { nudgeFor, remindersOf } from "@/lib/reminders";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -120,7 +119,7 @@ export default function TodayPage() {
   const today = dayKey();
   const nudge =
     profile && isToday && entries
-      ? nudgeFor({ reminders: remindersOf(profile), weights, todayEntries: entries, today, hour: new Date().getHours(), injectionDue: injectionDue(profile, today) })
+      ? nudgeFor({ reminders: remindersOf(profile), weights, todayEntries: entries, today, hour: new Date().getHours() })
       : null;
   function dismiss(id: string) {
     setDismissed(id);

@@ -355,53 +355,6 @@ export const ARTICLES: Article[] = [
       { p: "Please speak to your GP if you have felt low, anxious or hopeless for more than two weeks, if you have lost interest in things you usually enjoy, or if food and weight are taking over your thoughts. In England you can also refer yourself to NHS Talking Therapies without seeing a GP. If you ever feel unable to keep yourself safe, call 999, or call Samaritans free on 116 123 at any time." },
     ],
   },
-  {
-    slug: "weight-loss-injections",
-    title: "Weight-loss injections: getting the most from them",
-    summary: "How Wegovy and Mounjaro work, what to eat while your appetite is low, common side effects and when to get help.",
-    topic: "Body and mind",
-    minutes: 5,
-    body: [
-      { p: "Weight-loss injections such as semaglutide (Wegovy), tirzepatide (Mounjaro) and liraglutide (Saxenda) copy hormones your gut releases after a meal. They slow the emptying of your stomach and tell your brain you are full, so you feel less hungry and are satisfied by smaller portions. They are prescription medicines for people who meet set criteria, and they are meant to be used alongside changes to eating and activity, not instead of them." },
-      { h: "What to expect" },
-      { p: "The dose starts low and is stepped up, usually every four weeks, to give your body time to adjust. Weight loss tends to be gradual at first and to build over several months. People respond differently, and a slower start does not mean it is not working. Your prescriber decides your dose and how fast it rises." },
-      { h: "Protect your muscle" },
-      { p: "When appetite drops it is easy to eat too little protein, and part of the weight lost can then be muscle rather than fat. Muscle keeps you strong and keeps your metabolism up, so it is worth protecting." },
-      { list: [
-        "Eat protein at every meal, and eat it first: eggs, fish, chicken, lean meat, yoghurt, beans, lentils or tofu.",
-        "Use the protein goal on your Today page as your daily target.",
-        "Do strength exercises at least twice a week. Body weight exercises at home count.",
-        "Do not eat less than your calorie floor. Very low intakes cost muscle and energy.",
-      ] },
-      { h: "Eat small, eat well" },
-      { list: [
-        "Have three small meals rather than one large one, and eat slowly.",
-        "Stop at the first sign of fullness. Eating past it is the commonest cause of sickness.",
-        "Choose vegetables, fruit, wholegrains and beans for fibre, which helps prevent constipation.",
-        "Go easy on fatty, fried and very sweet food, especially in the day or two after your injection.",
-        "Drink six to eight glasses of fluid a day, even when you are not thirsty.",
-      ] },
-      { h: "Common side effects" },
-      { p: "Feeling sick, constipation, diarrhoea, heartburn and tiredness are common, particularly in the first weeks and after each dose increase. They are usually mild and settle. If they are hard to live with, tell your prescriber: staying longer on a dose, or stepping back down, are both options. The injections page in your journal lets you record side effects and gives tips for each one." },
-      { h: "When to get medical help" },
-      { list: [
-        "Severe stomach or back pain that does not go away, with or without being sick. Stop the injections and get urgent medical help.",
-        "Pain under your right ribs, a fever, or yellowing of your skin or eyes.",
-        "Being unable to keep fluids down, or signs of dehydration such as dizziness and very dark urine.",
-        "Swelling of your face, lips or throat, or difficulty breathing. Call 999.",
-        "Low mood or thoughts of harming yourself.",
-      ] },
-      { h: "Things to know" },
-      { list: [
-        "These medicines must not be used in pregnancy or while breastfeeding. Use effective contraception, and tell your prescriber if you are planning a pregnancy.",
-        "Tirzepatide can make the contraceptive pill less reliable for four weeks after starting and after each dose increase, so use a barrier method as well during those weeks.",
-        "If you take medicines for diabetes, your doses may need to change. Ask your prescriber about the risk of low blood sugar.",
-        "Only use injections prescribed for you and supplied by a registered pharmacy. Products sold online without a prescription can be fake and dangerous.",
-      ] },
-      { h: "After the injections" },
-      { p: "Appetite returns when the medicine stops, and studies show that much of the weight comes back unless eating and activity habits have changed. The time on treatment is your chance to build those habits while hunger is quieter: regular meals, enough protein, daily movement and an honest journal. Those are what you keep." },
-    ],
-  },
 ];
 
 export function getArticle(slug: string) {

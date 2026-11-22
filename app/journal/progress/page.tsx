@@ -308,11 +308,11 @@ export default function ProgressPage() {
         <h2 className="font-semibold text-ink">Weight-loss injections</h2>
         <p className="mt-1 text-sm text-muted">
           {profile.glp1?.medicine
-            ? "Your dose log, next injection date and help with side effects."
-            : "On Wegovy, Mounjaro or Saxenda? Track your doses and side effects, and eat well while your appetite is low."}
+            ? "Your record of the dates you took each injection."
+            : "On Wegovy, Mounjaro or Saxenda? Keep a record of the date you take each injection."}
         </p>
         <Link href="/journal/injections" className="btn-quiet mt-4 w-full">
-          {profile.glp1?.medicine ? "Open my injections" : "Set up injection tracking"}
+          {profile.glp1?.medicine ? "Open my injections" : "Start an injection record"}
         </Link>
       </section>
 

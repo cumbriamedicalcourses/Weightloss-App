@@ -41,12 +41,9 @@ export interface Glp1 {
   log?: Record<string, Injection>;
 }
 
+/** A logged injection. Only the day is recorded, as the key it is stored under. */
 export interface Injection {
-  /** Dose in mg. */
-  dose?: number;
-  site?: string;
-  /** Ids of side effects noticed since the last dose. */
-  effects?: string[];
+  taken: true;
 }
 
 /** Tape measurements in centimetres. Any of them can be left out. */
