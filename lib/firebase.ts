@@ -9,7 +9,9 @@ import {
 
 const config = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  // NEXT_PUBLIC_SIGN_IN_DOMAIN wins so that an older auth domain value set on
+  // the host cannot override the site's own domain on the Google sign-in screen.
+  authDomain: process.env.NEXT_PUBLIC_SIGN_IN_DOMAIN || process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
