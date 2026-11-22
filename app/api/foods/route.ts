@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyRequest } from "@/lib/verify-token";
 import type { FoodResult } from "@/lib/types";
+import { toDatabaseTerms } from "@/lib/uk-foods";
 
 // Energy is reported under different nutrient ids depending on the dataset.
 const ENERGY_IDS = [1008, 2047, 2048];
@@ -90,7 +91,7 @@ export async function GET(req: Request) {
   const hit = cache.get(key);
   if (hit && hit.expires > Date.now()) return NextResponse.json({ foods: hit.foods });
 
-  const result = await searchUsda(q.slice(0, 80));
+  const result = await searchUsda(toDatabaseTerms(q.slice(0, 80)));
   if (!result.ok) {
     console.error(`USDA food search failed for "${q}":`, result.detail);
     return NextResponse.json(
