@@ -106,6 +106,12 @@ function Form() {
         Continue with Google
       </button>
 
+      <p className="mt-4 text-sm text-muted">
+        By creating an account or continuing with Google you agree to our{" "}
+        <Link href="/terms" className="font-semibold text-leaf underline-offset-4 hover:underline">terms</Link> and{" "}
+        <Link href="/privacy" className="font-semibold text-leaf underline-offset-4 hover:underline">privacy policy</Link>.
+      </p>
+
       <div className="mt-6 flex flex-wrap justify-between gap-3 text-sm">
         <button className="font-semibold text-leaf underline-offset-4 hover:underline" onClick={() => { setMode(signup ? "signin" : "signup"); setError(""); }}>
           {signup ? "I already have an account" : "Create an account"}

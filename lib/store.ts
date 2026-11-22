@@ -3,12 +3,15 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
+  getDocs,
   limit,
   onSnapshot,
   orderBy,
   query,
   setDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { firebaseEnabled, firestore } from "./firebase";
 import type { Entry, Favourite, NewEntry, Profile, WeightLog } from "./types";
@@ -28,6 +31,17 @@ export interface Store {
   watchWeights(uid: string, cb: (w: WeightLog[]) => void): Unsub;
   setWeight(uid: string, w: WeightLog): Promise<void>;
   deleteWeight(uid: string, date: string): Promise<void>;
+  /** A copy of everything held for this person. */
+  exportAll(uid: string): Promise<JournalExport>;
+  /** Removes the profile, every entry and every weigh-in. Cannot be undone. */
+  deleteAll(uid: string): Promise<void>;
+}
+
+export interface JournalExport {
+  exportedAt: string;
+  profile: Profile | null;
+  entries: Entry[];
+  weights: WeightLog[];
 }
 
 /** Firestore drops `undefined` fields with an error, so strip them first. */
@@ -83,6 +97,37 @@ const firestoreStore: Store = {
   },
   async deleteWeight(uid, date) {
     void deleteDoc(doc(firestore(), "users", uid, "weights", date));
+  },
+  async exportAll(uid) {
+    const db = firestore();
+    const [profile, entries, weights] = await Promise.all([
+      getDoc(doc(db, "users", uid)),
+      getDocs(collection(db, "users", uid, "entries")),
+      getDocs(collection(db, "users", uid, "weights")),
+    ]);
+    return {
+      exportedAt: new Date().toISOString(),
+      profile: profile.exists() ? (profile.data() as Profile) : null,
+      entries: entries.docs
+        .map((d) => ({ ...(d.data() as Omit<Entry, "id">), id: d.id }))
+        .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt),
+      weights: weights.docs.map((d) => d.data() as WeightLog).sort((a, b) => a.date.localeCompare(b.date)),
+    };
+  },
+  async deleteAll(uid) {
+    const db = firestore();
+    const [entries, weights] = await Promise.all([
+      getDocs(collection(db, "users", uid, "entries")),
+      getDocs(collection(db, "users", uid, "weights")),
+    ]);
+    const refs = [...entries.docs, ...weights.docs].map((d) => d.ref);
+    // Firestore accepts at most 500 writes in one batch.
+    for (let i = 0; i < refs.length; i += 400) {
+      const batch = writeBatch(db);
+      refs.slice(i, i + 400).forEach((r) => batch.delete(r));
+      await batch.commit();
+    }
+    await deleteDoc(doc(db, "users", uid));
   },
 };
 
@@ -151,6 +196,17 @@ const localStore: Store = {
   },
   async deleteWeight(uid, date) {
     write(uid, (d) => void (d.weights = d.weights.filter((x) => x.date !== date)));
+  },
+  async exportAll(uid) {
+    return { exportedAt: new Date().toISOString(), ...read(uid) };
+  },
+  async deleteAll(uid) {
+    try {
+      localStorage.removeItem(keyFor(uid));
+    } catch {
+      // Nothing useful to do if storage is unavailable.
+    }
+    listeners.forEach((l) => l());
   },
 };
 

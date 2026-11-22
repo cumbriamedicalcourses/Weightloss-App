@@ -147,7 +147,12 @@ export default function Home() {
             Speak to your GP before starting a weight loss plan, especially if you have a health
             condition, are pregnant, or are under 18.
           </p>
-          <p className="mt-3">© {new Date().getFullYear()} My Weight Loss Journal</p>
+          <p className="mt-3">
+            © {new Date().getFullYear()} My Weight Loss Journal ·{" "}
+            <Link href="/learn" className="underline-offset-4 hover:underline">Learn</Link> ·{" "}
+            <Link href="/privacy" className="underline-offset-4 hover:underline">Privacy</Link> ·{" "}
+            <Link href="/terms" className="underline-offset-4 hover:underline">Terms</Link>
+          </p>
         </div>
       </footer>
     </>
