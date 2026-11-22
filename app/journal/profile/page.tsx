@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
-import { ACTIVITY_LABEL, dailyTarget, fromDisplayWeight, maintenance, safeFloor, toDisplayWeight } from "@/lib/calc";
+import { WeightInput } from "@/components/weight-input";
+import { ACTIVITY_LABEL, UNIT_NAME, dailyTarget, maintenance, safeFloor } from "@/lib/calc";
 import { dayKey } from "@/lib/dates";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
@@ -28,28 +29,19 @@ export default function ProfilePage() {
   const [sex, setSex] = useState<Sex>(profile?.sex ?? "female");
   const [birthYear, setBirthYear] = useState(profile ? String(profile.birthYear) : "");
   const [height, setHeight] = useState(profile ? String(profile.heightCm) : "");
-  const [weight, setWeight] = useState(profile ? String(toDisplayWeight(currentKg, unit)) : "");
-  const [goal, setGoal] = useState(profile ? String(toDisplayWeight(profile.goalWeightKg, unit)) : "");
+  const [weightKg, setWeightKg] = useState<number | null>(profile ? currentKg : null);
+  const [goalKg, setGoalKg] = useState<number | null>(profile ? profile.goalWeightKg : null);
   const [activity, setActivity] = useState<ActivityLevel>(profile?.activity ?? "light");
   const [pace, setPace] = useState(profile?.pacePerWeekKg ?? 0.5);
   const [custom, setCustom] = useState(profile?.customTarget ? String(profile.customTarget) : "");
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
 
-  function changeUnit(next: WeightUnit) {
-    if (next === unit) return;
-    // Keep the same real weights when the unit changes.
-    const convert = (v: string) => (v ? String(toDisplayWeight(fromDisplayWeight(Number(v), unit), next)) : v);
-    setWeight(convert);
-    setGoal(convert);
-    setUnit(next);
-  }
-
   const draft: Profile | null = (() => {
     const by = Number(birthYear);
     const h = Number(height);
-    const w = fromDisplayWeight(Number(weight), unit);
-    const g = fromDisplayWeight(Number(goal), unit);
+    const w = weightKg ?? 0;
+    const g = goalKg ?? 0;
     if (!(by > 1900 && by <= year) || !(h > 0) || !(w > 0) || !(g > 0)) return null;
     return {
       name: name.trim(),
@@ -64,7 +56,7 @@ export default function ProfilePage() {
       customTarget: custom ? Number(custom) : null,
     };
   })();
-  const draftKg = fromDisplayWeight(Number(weight), unit);
+  const draftKg = weightKg ?? 0;
   const suggested = draft ? dailyTarget({ ...draft, customTarget: null }, draftKg, year) : null;
   const atFloor = draft && suggested === safeFloor(draft.sex) && maintenance(draft, draftKg, year) - (pace * 7700) / 7 < suggested;
 
@@ -86,7 +78,7 @@ export default function ProfilePage() {
       return;
     }
     if (draftKg < 35 || draftKg > 350) {
-      setError(`Check your current weight. It should be in ${unit === "kg" ? "kilograms" : "pounds"}.`);
+      setError(`Check your current weight. It should be in ${UNIT_NAME[unit]}.`);
       return;
     }
     if (draft.customTarget && draft.customTarget < 1000) {
@@ -187,23 +179,17 @@ export default function ProfilePage() {
         <fieldset>
           <legend className="label">Weigh in</legend>
           <div className="flex gap-1 rounded-xl border border-line bg-card p-1">
-            {(["kg", "lb"] as const).map((u) => (
-              <button key={u} type="button" aria-pressed={unit === u} className={toggle(unit === u)} onClick={() => changeUnit(u)}>
-                {u === "kg" ? "Kilograms" : "Pounds"}
+            {(["kg", "st", "lb"] as const).map((u) => (
+              <button key={u} type="button" aria-pressed={unit === u} className={toggle(unit === u)} onClick={() => setUnit(u)}>
+                {u === "kg" ? "Kilograms" : u === "st" ? "Stones" : "Pounds"}
               </button>
             ))}
           </div>
         </fieldset>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="label" htmlFor="p-weight">Current weight ({unit})</label>
-            <input id="p-weight" className="field" inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} />
-          </div>
-          <div>
-            <label className="label" htmlFor="p-goal">Goal weight ({unit})</label>
-            <input id="p-goal" className="field" inputMode="decimal" value={goal} onChange={(e) => setGoal(e.target.value)} />
-          </div>
+        <div className={`grid gap-3 ${unit === "st" ? "grid-cols-1" : "grid-cols-2"}`}>
+          <WeightInput key={`w-${unit}`} id="p-weight" label="Current weight" unit={unit} kg={weightKg} onChange={setWeightKg} />
+          <WeightInput key={`g-${unit}`} id="p-goal" label="Goal weight" unit={unit} kg={goalKg} onChange={setGoalKg} />
         </div>
 
         <div>

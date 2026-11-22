@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { bmi, fromDisplayWeight, proteinTarget, toDisplayWeight } from "@/lib/calc";
+import { WeightInput } from "@/components/weight-input";
+import { UNIT_NAME, bmi, formatWeight, proteinTarget, toDisplayWeight, weightParts } from "@/lib/calc";
 import { weeklyCheckIn } from "@/lib/checkin";
 import { addDays, dayKey, parseDay, shortDay } from "@/lib/dates";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
-import type { Entry, WeightLog } from "@/lib/types";
+import type { Entry, WeightLog, WeightUnit } from "@/lib/types";
 
-function WeightChart({ points, goal, unit }: { points: WeightLog[]; goal: number; unit: "kg" | "lb" }) {
+function WeightChart({ points, goal, unit }: { points: WeightLog[]; goal: number; unit: WeightUnit }) {
   const W = 560;
   const H = 220;
-  const pad = { l: 44, r: 12, t: 14, b: 28 };
+  const pad = { l: unit === "st" ? 62 : 44, r: 12, t: 14, b: 28 };
   const values = points.map((p) => toDisplayWeight(p.kg, unit));
   const g = toDisplayWeight(goal, unit);
   const lo = Math.floor(Math.min(...values, g) - 1);
@@ -22,6 +23,12 @@ function WeightChart({ points, goal, unit }: { points: WeightLog[]; goal: number
     t1 === t0 ? (pad.l + W - pad.r) / 2 : pad.l + ((parseDay(d).getTime() - t0) / (t1 - t0)) * (W - pad.l - pad.r);
   const y = (v: number) => pad.t + ((hi - v) / (hi - lo)) * (H - pad.t - pad.b);
   const path = points.map((p, i) => `${i ? "L" : "M"}${x(p.date).toFixed(1)},${y(values[i]).toFixed(1)}`).join(" ");
+  // Stones are plotted in pounds and labelled in stones and pounds.
+  const tick = (v: number) => {
+    if (unit !== "st") return String(Math.round(v * 10) / 10);
+    const lbs = Math.round(v);
+    return `${Math.floor(lbs / 14)} st ${lbs % 14}`;
+  };
   const fmt = (d: string) => parseDay(d).toLocaleDateString(undefined, { day: "numeric", month: "short" });
 
   return (
@@ -29,13 +36,13 @@ function WeightChart({ points, goal, unit }: { points: WeightLog[]; goal: number
       viewBox={`0 0 ${W} ${H}`}
       className="h-auto w-full"
       role="img"
-      aria-label={`Weight from ${values[0]} ${unit} on ${fmt(points[0].date)} to ${values.at(-1)} ${unit} on ${fmt(points.at(-1)!.date)}. Goal ${g} ${unit}.`}
+      aria-label={`Weight from ${formatWeight(points[0].kg, unit)} on ${fmt(points[0].date)} to ${formatWeight(points.at(-1)!.kg, unit)} on ${fmt(points.at(-1)!.date)}. Goal ${formatWeight(goal, unit)}.`}
     >
       {[hi, (hi + lo) / 2, lo].map((v) => (
         <g key={v}>
           <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} className="stroke-line" strokeWidth="1" />
           <text x={pad.l - 8} y={y(v) + 4} textAnchor="end" className="fill-muted text-[12px] tabular-nums">
-            {Math.round(v * 10) / 10}
+            {tick(v)}
           </text>
         </g>
       ))}
@@ -58,7 +65,8 @@ export default function ProgressPage() {
   const unit = profile?.weightUnit ?? "kg";
   const today = dayKey();
   const weekStart = addDays(today, -6);
-  const [value, setValue] = useState("");
+  const [kgIn, setKgIn] = useState<number | null>(null);
+  const [formKey, setFormKey] = useState(0);
   const [error, setError] = useState("");
   const [week, setWeek] = useState<Entry[]>([]);
 
@@ -82,7 +90,7 @@ export default function ProgressPage() {
         today,
         target,
         proteinGoal: proteinTarget(currentKg),
-        formatWeight: (kg) => `${toDisplayWeight(kg, unit)} ${unit}`,
+        formatWeight: (kg) => formatWeight(kg, unit),
       }),
     [week, weights, today, target, currentKg, unit],
   );
@@ -91,18 +99,22 @@ export default function ProgressPage() {
 
   const lost = profile.startWeightKg - currentKg;
   const toGo = currentKg - profile.goalWeightKg;
+  const now = weightParts(currentKg, unit);
+  const lostParts = weightParts(lost, unit);
+  const toGoParts = weightParts(toGo, unit);
   const scale = Math.max(target, ...days.map((d) => d.net), 1) * 1.1;
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    const kg = fromDisplayWeight(Number(value), unit);
+    const kg = kgIn ?? 0;
     if (!(kg >= 35 && kg <= 350)) {
-      setError(`Enter your weight in ${unit === "kg" ? "kilograms" : "pounds"}.`);
+      setError(`Enter your weight in ${UNIT_NAME[unit]}.`);
       return;
     }
     setError("");
     void store.setWeight(user.uid, { date: today, kg: Math.round(kg * 100) / 100 });
-    setValue("");
+    setKgIn(null);
+    setFormKey((k) => k + 1);
   }
 
   return (
@@ -112,20 +124,20 @@ export default function ProgressPage() {
       <section className="card mt-4 grid grid-cols-3 p-5 text-center">
         <div>
           <p className="text-xs uppercase tracking-wide text-muted">Now</p>
-          <p className="mt-0.5 font-display text-2xl tabular-nums text-ink">{toDisplayWeight(currentKg, unit)}</p>
-          <p className="text-xs text-muted">{unit}</p>
+          <p className="mt-0.5 font-display text-2xl tabular-nums text-ink">{now.main}</p>
+          <p className="text-xs text-muted">{now.sub}</p>
         </div>
         <div className="border-x border-line">
           <p className="text-xs uppercase tracking-wide text-muted">{lost >= 0 ? "Lost" : "Gained"}</p>
           <p className={`mt-0.5 font-display text-2xl tabular-nums ${lost >= 0 ? "text-leaf" : "text-clay"}`}>
-            {Math.abs(toDisplayWeight(lost, unit))}
+            {lostParts.main}
           </p>
-          <p className="text-xs text-muted">{unit}</p>
+          <p className="text-xs text-muted">{lostParts.sub}</p>
         </div>
         <div>
           <p className="text-xs uppercase tracking-wide text-muted">{toGo > 0 ? "To go" : "Past goal"}</p>
-          <p className="mt-0.5 font-display text-2xl tabular-nums text-ink">{Math.abs(toDisplayWeight(toGo, unit))}</p>
-          <p className="text-xs text-muted">{unit}</p>
+          <p className="mt-0.5 font-display text-2xl tabular-nums text-ink">{toGoParts.main}</p>
+          <p className="text-xs text-muted">{toGoParts.sub}</p>
         </div>
       </section>
 
@@ -152,7 +164,7 @@ export default function ProgressPage() {
             >
               {checkIn.weightChangeKg === null
                 ? "–"
-                : `${checkIn.weightChangeKg > 0 ? "+" : checkIn.weightChangeKg < 0 ? "−" : ""}${Math.abs(toDisplayWeight(checkIn.weightChangeKg, unit))} ${unit}`}
+                : `${checkIn.weightChangeKg > 0 ? "+" : checkIn.weightChangeKg < 0 ? "−" : ""}${formatWeight(checkIn.weightChangeKg, unit)}`}
             </dd>
           </div>
         </dl>
@@ -185,10 +197,9 @@ export default function ProgressPage() {
         ) : null}
         <form onSubmit={submit} className="mt-4 flex items-end gap-3">
           <div className="flex-1">
-            <label className="label" htmlFor="weigh-in">Today&apos;s weight ({unit})</label>
-            <input id="weigh-in" className="field" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} />
+            <WeightInput key={formKey} id="weigh-in" label="Today's weight" unit={unit} kg={null} onChange={setKgIn} />
           </div>
-          <button className="btn" disabled={!value}>Save</button>
+          <button className="btn" disabled={kgIn === null}>Save</button>
         </form>
         {error ? <p className="mt-2 text-sm text-clay" role="alert">{error}</p> : null}
         <p className="mt-3 text-sm text-muted">
