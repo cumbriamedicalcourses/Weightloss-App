@@ -7,6 +7,7 @@ import { weeklyCheckIn } from "@/lib/checkin";
 import { WATER_GOAL, WEEKLY_UNIT_GUIDE } from "@/lib/drinks";
 import { addDays, dayKey, parseDay, shortDay } from "@/lib/dates";
 import { useJournal } from "@/lib/journal";
+import { STREAK_WINDOW_DAYS, milestones, projection, streak } from "@/lib/milestones";
 import { store } from "@/lib/store";
 import type { Entry, WeightLog, WeightUnit } from "@/lib/types";
 
@@ -71,7 +72,9 @@ export default function ProgressPage() {
   const [error, setError] = useState("");
   const [week, setWeek] = useState<Entry[]>([]);
 
-  useEffect(() => store.watchEntries(user.uid, weekStart, today, setWeek), [user.uid, weekStart, today]);
+  // One read covers the last week for the check-in and the longer window for streaks.
+  const windowStart = addDays(today, -(STREAK_WINDOW_DAYS - 1));
+  useEffect(() => store.watchEntries(user.uid, windowStart, today, setWeek), [user.uid, windowStart, today]);
 
   const days = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
@@ -98,6 +101,19 @@ export default function ProgressPage() {
 
   if (!profile) return null;
 
+  const run = streak(week, today);
+  const proj = projection(weights, profile, currentKg, today);
+  const badges = milestones({
+    entries: week,
+    weights,
+    profile,
+    currentKg,
+    best: run.best,
+    proteinGoal: proteinTarget(currentKg),
+    waterGoal: WATER_GOAL,
+  });
+  const earned = badges.filter((b) => b.earned).length;
+  const longDate = (d: string) => parseDay(d).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
   const waterDays = days.filter((d) => (profile.water?.[d.date] ?? 0) >= WATER_GOAL - 2).length;
   const lost = profile.startWeightKg - currentKg;
   const toGo = currentKg - profile.goalWeightKg;
@@ -141,6 +157,38 @@ export default function ProgressPage() {
           <p className="mt-0.5 font-display text-2xl tabular-nums text-ink">{toGoParts.main}</p>
           <p className="text-xs text-muted">{toGoParts.sub}</p>
         </div>
+      </section>
+
+      <section className="card mt-4 p-5" aria-label="Streak and goal date">
+        <div className="grid grid-cols-2 text-center">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted">Logging streak</p>
+            <p className="mt-0.5 font-display text-2xl tabular-nums text-leaf">{run.current}</p>
+            <p className="text-xs text-muted">{run.current === 1 ? "day" : "days"} in a row</p>
+          </div>
+          <div className="border-l border-line">
+            <p className="text-xs uppercase tracking-wide text-muted">Best streak</p>
+            <p className="mt-0.5 font-display text-2xl tabular-nums text-ink">{run.best}</p>
+            <p className="text-xs text-muted">{run.best === 1 ? "day" : "days"}, last {STREAK_WINDOW_DAYS} days</p>
+          </div>
+        </div>
+        <p className="mt-4 rounded-xl bg-leaf-soft px-3.5 py-3 text-ink">
+          {proj.reached
+            ? "You have reached your goal weight. Well done. You can set a new goal on the Profile page."
+            : proj.date && proj.ratePerWeekKg
+              ? `You are losing about ${formatWeight(proj.ratePerWeekKg, unit)} a week. At that rate you would reach ${formatWeight(profile.goalWeightKg, unit)} around ${longDate(proj.date)}.`
+              : proj.ratePerWeekKg !== null
+                ? "Your weight has been steady or rising over your recent weigh-ins, so there is no goal date to show yet. The weekly check-in below has one thing to try."
+                : proj.plannedDate
+                  ? `At the pace you chose, you would reach ${formatWeight(profile.goalWeightKg, unit)} around ${longDate(proj.plannedDate)}. Weigh in over a week or more and this will use your real rate.`
+                  : "Weigh in over a week or more and your goal date will appear here."}
+        </p>
+        {proj.ratePerWeekKg !== null && proj.ratePerWeekKg > 1 ? (
+          <p className="mt-2 text-sm text-clay">
+            Losing more than about 1 kg (2 lb) a week is faster than usually advised. Consider a gentler pace, and speak
+            to your GP if you did not intend it.
+          </p>
+        ) : null}
       </section>
 
       <section className="card mt-4 p-5" aria-label="Weekly check-in">
@@ -248,6 +296,28 @@ export default function ProgressPage() {
             })}
           </ul>
         </div>
+      </section>
+
+      <section className="card mt-4 p-5" aria-label="Milestones">
+        <h2 className="font-semibold text-ink">Milestones</h2>
+        <p className="text-sm text-muted">
+          {earned} of {badges.length} earned.
+        </p>
+        <ul className="mt-4 grid grid-cols-2 gap-2">
+          {badges.map((b) => (
+            <li
+              key={b.title}
+              className={`rounded-xl border px-3 py-2.5 ${b.earned ? "border-leaf bg-leaf-soft" : "border-line bg-card"}`}
+            >
+              <p className={`flex items-center gap-1.5 text-sm font-semibold ${b.earned ? "text-leaf-dark" : "text-muted"}`}>
+                <span aria-hidden>{b.earned ? "★" : "☆"}</span>
+                {b.title}
+                <span className="sr-only">{b.earned ? " (earned)" : " (not yet earned)"}</span>
+              </p>
+              <p className="mt-0.5 text-xs text-muted">{b.detail}</p>
+            </li>
+          ))}
+        </ul>
       </section>
     </>
   );
