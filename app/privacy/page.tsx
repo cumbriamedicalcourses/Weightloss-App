@@ -26,6 +26,7 @@ const BODY: Block[] = [
     "Hostinger hosts the website.",
     "Anthropic provides the service that estimates calories from a photo or a description. The photo or text is sent for that purpose without your name or email address.",
     "USDA FoodData Central provides the food search. Only the words you search for are sent.",
+    "Reminder emails are sent only if you switch them on in your Profile, to the email address you signed in with, from our own mailbox at Hostinger. Every email has a link to stop them.",
     "Open Food Facts provides the barcode lookup. Only the barcode number is sent. The camera picture used to read the barcode stays on your device.",
   ] },
   { h: "What is kept on your device" },

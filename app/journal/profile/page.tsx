@@ -1,5 +1,6 @@
 "use client";
 
+import { remindersOf } from "@/lib/reminders";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -49,6 +50,7 @@ export default function ProfilePage() {
   const [activity, setActivity] = useState<ActivityLevel>(profile?.activity ?? "light");
   const [pace, setPace] = useState(profile?.pacePerWeekKg ?? 0.5);
   const [exercise, setExercise] = useState<ExerciseLevel>(profile?.exerciseLevel ?? "none");
+  const [reminders, setReminders] = useState(() => remindersOf(profile));
   const [byDate, setByDate] = useState(Boolean(profile?.targetDate));
   const [targetDate, setTargetDate] = useState(profile?.targetDate ?? "");
   const [goalKey, setGoalKey] = useState(0);
@@ -81,6 +83,8 @@ export default function ProfilePage() {
       pacePerWeekKg: plannedPace,
       targetDate: byDate && targetDate ? targetDate : null,
       exerciseLevel: exercise,
+      // The server keeps its own note of the last email on the same field, so only the choices are saved.
+      reminders: { log: reminders.log, weigh: reminders.weigh, email: reminders.email && (reminders.log || reminders.weigh) },
       weightUnit: unit,
       customTarget: custom ? Number(custom) : null,
     };
@@ -332,6 +336,38 @@ export default function ProfilePage() {
           <p className="mt-1.5 text-sm text-muted">
             Exercise is a bonus on top of your food target. It does not change how much you eat, and exercise you log
             is not added back to your food allowance.
+          </p>
+        </fieldset>
+
+        <fieldset>
+          <legend className="label">Reminders</legend>
+          <div className="space-y-2">
+            <label className="card flex cursor-pointer items-center gap-3 px-4 py-3">
+              <input type="checkbox" className="size-4 accent-leaf" checked={reminders.log} onChange={(e) => setReminders({ ...reminders, log: e.target.checked })} />
+              <span className="text-ink">Remind me to log my meals</span>
+            </label>
+            <label className="card flex cursor-pointer items-center gap-3 px-4 py-3">
+              <input type="checkbox" className="size-4 accent-leaf" checked={reminders.weigh} onChange={(e) => setReminders({ ...reminders, weigh: e.target.checked })} />
+              <span className="text-ink">Remind me to weigh in every week</span>
+            </label>
+            {user.email ? (
+              <label className="card flex cursor-pointer items-center gap-3 px-4 py-3">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-leaf"
+                  checked={reminders.email}
+                  disabled={!reminders.log && !reminders.weigh}
+                  onChange={(e) => setReminders({ ...reminders, email: e.target.checked })}
+                />
+                <span className="text-ink">
+                  Also email them to me <span className="text-muted">({user.email})</span>
+                </span>
+              </label>
+            ) : null}
+          </div>
+          <p className="mt-1.5 text-sm text-muted">
+            Reminders appear at the top of Today when you open your journal. By email you get one a day at most, in the
+            evening, and only when there is something to do. Every email has a link to stop them.
           </p>
         </fieldset>
 
