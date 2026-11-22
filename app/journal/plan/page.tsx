@@ -111,21 +111,23 @@ export default function PlanPage() {
       {plan.deficit > 0 ? (
         <section className="card mt-4 p-5" aria-label="Calorie gap">
           <h2 className="font-semibold text-ink">Your daily calorie gap</h2>
-          <p className="text-sm text-muted">How far below what you burn the plan puts you each day.</p>
-          <dl className="mt-4 grid grid-cols-3 text-center">
+          <p className="text-sm text-muted">How far below what you burn your food target puts you each day.</p>
+          <dl className="mt-4 grid grid-cols-2 text-center">
             <div>
-              <dt className="text-xs uppercase tracking-wide text-muted">Total</dt>
-              <dd className="mt-0.5 font-display text-2xl tabular-nums text-ink">{plan.deficit}</dd>
-            </div>
-            <div className="border-x border-line">
               <dt className="text-xs uppercase tracking-wide text-muted">From food</dt>
-              <dd className="mt-0.5 font-display text-2xl tabular-nums text-leaf">{plan.fromFood}</dd>
+              <dd className="mt-0.5 font-display text-2xl tabular-nums text-ink">{plan.fromFood} kcal</dd>
             </div>
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-muted">From activity</dt>
-              <dd className="mt-0.5 font-display text-2xl tabular-nums text-leaf">{plan.fromActivity}</dd>
+            <div className="border-l border-line">
+              <dt className="text-xs uppercase tracking-wide text-muted">Exercise, extra</dt>
+              <dd className="mt-0.5 font-display text-2xl tabular-nums text-leaf">
+                {plan.fromActivity > 0 ? `about ${plan.fromActivity} kcal` : "none yet"}
+              </dd>
             </div>
           </dl>
+          <p className="mt-3 text-sm text-muted">
+            Your exercise is a bonus on top and does not change your food target. These figures are estimates, and
+            people differ, so your weekly weigh-in is the real guide.
+          </p>
         </section>
       ) : null}
 
@@ -146,8 +148,8 @@ export default function PlanPage() {
         {!list.length ? (
           <>
             <p className="mt-1 text-muted">
-              You have not chosen an exercise plan, so all of your calorie gap comes from food. Adding one lets you eat a
-              little more and helps your heart, mood and sleep.
+              You have not chosen an exercise plan, so all of your calorie gap comes from food. Adding one is a bonus on
+              top and helps your heart, mood and sleep.
             </p>
             <Link href="/journal/profile" className="btn-quiet mt-4 w-full">
               Choose an exercise plan

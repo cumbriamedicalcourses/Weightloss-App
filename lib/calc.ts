@@ -37,19 +37,18 @@ export function safeFloor(sex: Profile["sex"]) {
 }
 
 /**
- * The part of the daily calorie gap that the exercise plan covers. It is
- * capped at half the gap, so food always does at least half the work.
+ * Roughly what the exercise plan burns a day, averaged over the week. It is
+ * purely extra: the food target does not move because of it.
  */
-export function activityShare(p: Profile, weightKg: number) {
-  const deficit = (p.pacePerWeekKg * KCAL_PER_KG) / 7;
-  return Math.max(0, Math.min(weeklyExtraKcal(p.exerciseLevel, weightKg) / 7, deficit / 2));
+export function activityExtra(p: Profile, weightKg: number) {
+  return Math.max(0, weeklyExtraKcal(p.exerciseLevel, weightKg) / 7);
 }
 
-/** Calories to eat in a day. Logged exercise is not added back: the plan already counts it. */
+/** Calories to eat in a day. Food alone carries the planned gap; exercise is never added back. */
 export function dailyTarget(p: Profile, weightKg: number, year: number) {
   if (p.customTarget && p.customTarget > 0) return Math.round(p.customTarget);
   const deficit = (p.pacePerWeekKg * KCAL_PER_KG) / 7;
-  const target = maintenance(p, weightKg, year) - deficit + activityShare(p, weightKg);
+  const target = maintenance(p, weightKg, year) - deficit;
   return Math.round(Math.max(target, safeFloor(p.sex)) / 10) * 10;
 }
 

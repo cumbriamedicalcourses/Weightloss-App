@@ -84,7 +84,7 @@ export function planReview(input: {
   } else if (checkIn.averageNet > target + 100) {
     body = `You averaged ${checkIn.averageNet.toLocaleString()} kcal a day against a target of ${target.toLocaleString()}. That ${(checkIn.averageNet - target).toLocaleString()} kcal a day is the gap. Find the meal or snack where most of it comes from and plan that one ahead.`;
   } else if (plannedMinutes > 0 && checkIn.exerciseMinutes < plannedMinutes * 0.5) {
-    body = `Your food was on target, but you logged ${checkIn.exerciseMinutes} of your ${plannedMinutes} planned minutes of exercise. Part of your plan relies on it, so put this week's sessions in your diary.`;
+    body = `Your food was on target, but you logged ${checkIn.exerciseMinutes} of your ${plannedMinutes} planned minutes of exercise. Exercise is the extra that helps most when the scales are slow, so put this week's sessions in your diary.`;
   } else {
     body = "Your food and activity were on plan, so this is most likely normal week to week variation. Weigh a few foods to check your portions, and judge the trend over two or three weeks before changing anything.";
   }

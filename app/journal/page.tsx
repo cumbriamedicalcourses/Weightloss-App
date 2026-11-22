@@ -148,7 +148,7 @@ export default function TodayPage() {
               {formatWeight(plan.toGoKg, unit)} to go
               {plan.paceKg > 0 ? ` · about ${formatWeight(plan.paceKg, unit)} a week` : ""}
               {plan.deficit > 0 ? ` · ${plan.deficit.toLocaleString()} kcal a day below what you burn` : ""}
-              {plan.fromActivity > 0 ? ` (${plan.fromFood} from food, ${plan.fromActivity} from activity)` : ""}
+              {plan.fromActivity > 0 ? ", plus your exercise as a bonus" : ""}
             </p>
           </>
         )}

@@ -1,4 +1,4 @@
-import { MAX_PACE_KG, activityShare, dailyTarget, maintenance, paceForDate } from "./calc";
+import { MAX_PACE_KG, activityExtra, dailyTarget, maintenance, paceForDate } from "./calc";
 import { addDays, parseDay } from "./dates";
 import type { Profile } from "./types";
 
@@ -9,9 +9,10 @@ export interface Target {
   date: string | null;
   /** Planned loss in kg a week, as used this week. */
   paceKg: number;
-  /** Calories a day below what the person burns, after the safety floor: food and activity together. */
+  /** Calories a day below what the person burns, from food alone, after the safety floor. */
   deficit: number;
   fromFood: number;
+  /** Roughly what the exercise plan adds on top each day. Extra, not part of the gap. */
   fromActivity: number;
   /** True when the person chose a date, so the pace is recalculated each week. */
   byDate: boolean;
@@ -58,8 +59,8 @@ export function target(stored: Profile, currentKg: number, today: string): Targe
   const toGoKg = currentKg - profile.goalWeightKg;
   const year = Number(today.slice(0, 4));
   const fromFood = Math.max(0, Math.round((maintenance(profile, currentKg, year) - dailyTarget(profile, currentKg, year)) / 10) * 10);
-  const fromActivity = profile.customTarget ? 0 : Math.round(activityShare(profile, currentKg) / 10) * 10;
-  const base = { paceKg: live.paceKg, deficit: fromFood + fromActivity, fromFood, fromActivity, byDate: live.byDate };
+  const fromActivity = Math.round(activityExtra(profile, currentKg) / 10) * 10;
+  const base = { paceKg: live.paceKg, deficit: fromFood, fromFood, fromActivity, byDate: live.byDate };
   if (toGoKg <= 0) return { ...base, reached: true, toGoKg: 0, date: null, dateAtRisk: false, earliest: null };
   const weeks = live.paceKg > 0 ? toGoKg / live.paceKg : 0;
   const atPace = weeks > 0 && weeks < 520 ? addDays(today, Math.ceil(weeks * 7)) : null;

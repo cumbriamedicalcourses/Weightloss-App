@@ -330,8 +330,8 @@ export default function ProfilePage() {
             ))}
           </div>
           <p className="mt-1.5 text-sm text-muted">
-            With an exercise plan, part of your calorie gap comes from activity, so you can eat a little more. Exercise
-            you log is not added back to your food allowance.
+            Exercise is a bonus on top of your food target. It does not change how much you eat, and exercise you log
+            is not added back to your food allowance.
           </p>
         </fieldset>
 
