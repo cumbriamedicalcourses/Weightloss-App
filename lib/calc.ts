@@ -1,4 +1,4 @@
-import type { ActivityLevel, Profile } from "./types";
+import type { ActivityLevel, Profile, WeightUnit } from "./types";
 
 export const KG_PER_LB = 0.45359237;
 /** Approximate energy in one kilogram of body fat. */
@@ -47,14 +47,49 @@ export function exerciseCalories(met: number, weightKg: number, minutes: number)
   return Math.round(met * weightKg * (minutes / 60));
 }
 
-export function toDisplayWeight(kg: number, unit: "kg" | "lb") {
-  const v = unit === "lb" ? kg / KG_PER_LB : kg;
+/**
+ * A weight as one number in the person's unit. Stones are plotted and
+ * compared in pounds, so "st" gives pounds here.
+ */
+export function toDisplayWeight(kg: number, unit: WeightUnit) {
+  const v = unit === "kg" ? kg : kg / KG_PER_LB;
   return Math.round(v * 10) / 10;
 }
 
-export function fromDisplayWeight(value: number, unit: "kg" | "lb") {
-  return unit === "lb" ? value * KG_PER_LB : value;
+export function fromDisplayWeight(value: number, unit: WeightUnit) {
+  return unit === "kg" ? value : value * KG_PER_LB;
 }
+
+/** Whole stones and the pounds left over (to one decimal place). */
+export function toStones(kg: number) {
+  const tenths = Math.round((Math.abs(kg) / KG_PER_LB) * 10);
+  return { st: Math.floor(tenths / 140), lb: (tenths % 140) / 10 };
+}
+
+export function fromStones(st: number, lb: number) {
+  return (st * 14 + lb) * KG_PER_LB;
+}
+
+/**
+ * A weight split for display: "82.5" + "kg", "181.9" + "lb" or "12 st" + "13.5 lb".
+ * Amounts under a stone are shown in pounds alone.
+ */
+export function weightParts(kg: number, unit: WeightUnit): { main: string; sub: string } {
+  if (unit !== "st") return { main: String(Math.abs(toDisplayWeight(kg, unit))), sub: unit };
+  const { st, lb } = toStones(kg);
+  return st ? { main: `${st} st`, sub: `${lb} lb` } : { main: String(lb), sub: "lb" };
+}
+
+export function formatWeight(kg: number, unit: WeightUnit) {
+  const { main, sub } = weightParts(kg, unit);
+  return `${main} ${sub}`;
+}
+
+export const UNIT_NAME: Record<WeightUnit, string> = {
+  kg: "kilograms",
+  lb: "pounds",
+  st: "stones and pounds",
+};
 
 export function bmi(weightKg: number, heightCm: number) {
   const m = heightCm / 100;

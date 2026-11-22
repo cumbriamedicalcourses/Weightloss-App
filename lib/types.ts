@@ -1,5 +1,5 @@
 export type Sex = "female" | "male";
-export type WeightUnit = "kg" | "lb";
+export type WeightUnit = "kg" | "lb" | "st";
 export type ActivityLevel = "sedentary" | "light" | "moderate" | "active";
 
 export interface Profile {
