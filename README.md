@@ -10,7 +10,7 @@ People log food, drink and exercise, and see calories in and out for each day.
 
 | Part | Choice |
 | --- | --- |
-| Site and app | Next.js (App Router), TypeScript, Tailwind CSS |
+| Site and app | Next.js (App Router, built with webpack), TypeScript, Tailwind CSS |
 | Accounts and data | Firebase Authentication (email and Google) and Cloud Firestore |
 | Food search | USDA FoodData Central, through `/api/foods` |
 | Photo estimates | Claude, through `/api/estimate`. Photos are not stored. |
