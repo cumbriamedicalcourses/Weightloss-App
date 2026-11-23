@@ -27,6 +27,7 @@ export const ARTICLES: Article[] = [
     summary: "Calories in, calories out, and why a small daily gap adds up to steady loss.",
     topic: "Getting started",
     minutes: 3,
+    video: "https://iframe.mediadelivery.net/embed/818541/d48aa2b3-c13b-4cf4-ac5a-480861cff0eb",
     body: [
       { p: "Your body uses energy all day: to keep you warm, to keep your heart beating, to digest food and to move. That energy is measured in calories. Food and drink put calories in, and living and moving take calories out." },
       { p: "When you take in fewer calories than you use, your body makes up the difference from its stores, and over time you lose weight. This gap is called a calorie deficit. Every method of losing weight, whatever its name, works by creating one." },
@@ -46,6 +47,7 @@ export const ARTICLES: Article[] = [
     summary: "Why a modest first goal beats an ambitious one, and how to choose your pace.",
     topic: "Getting started",
     minutes: 3,
+    video: "https://iframe.mediadelivery.net/embed/818541/fb12aa25-dbf4-4d26-bfa9-59ce1fe07ce3",
     body: [
       { p: "It is tempting to set the biggest goal you can imagine and the shortest time to reach it. The trouble is that a goal which feels impossibly far away stops being motivating after the first hard week." },
       { h: "Start with 5 to 10 per cent" },
@@ -65,6 +67,7 @@ export const ARTICLES: Article[] = [
     summary: "Daily weight changes are mostly water. Here is how to read the trend instead.",
     topic: "Staying on track",
     minutes: 3,
+    video: "https://iframe.mediadelivery.net/embed/818541/d0fc57e4-bdfb-4dbe-b85d-d1dfd9a00fbe",
     body: [
       { p: "You have a careful day, step on the scales the next morning and find you are half a kilogram heavier. It is one of the most discouraging moments in losing weight, and it almost never means what it seems to." },
       { h: "Most daily change is water" },
@@ -84,6 +87,7 @@ export const ARTICLES: Article[] = [
     summary: "What to check when your weight has not moved for a few weeks.",
     topic: "Staying on track",
     minutes: 4,
+    video: "https://iframe.mediadelivery.net/embed/818541/00cf4c09-fe6d-4ee7-b37c-9aa03b03ba50",
     body: [
       { p: "Almost everyone who loses weight reaches a point where it stalls. A plateau is three or four weeks with no change in the trend. A few flat days is not a plateau, it is ordinary variation." },
       { h: "Why it happens" },
@@ -108,6 +112,7 @@ export const ARTICLES: Article[] = [
     summary: "The foods that keep hunger away for longest on the fewest calories.",
     topic: "Food",
     minutes: 3,
+    video: "https://iframe.mediadelivery.net/embed/818541/5949e9ea-cf45-4897-a52d-f41f53c3380c",
     body: [
       { p: "Two meals with the same calories can leave you feeling very different two hours later. What a meal is made of decides how long it keeps you full." },
       { h: "Protein" },
@@ -132,6 +137,7 @@ export const ARTICLES: Article[] = [
     summary: "How to enjoy restaurants, takeaways and celebrations and still keep your journal.",
     topic: "Food",
     minutes: 3,
+    video: "https://iframe.mediadelivery.net/embed/818541/53d8c26b-f620-4530-a567-047d149163d1",
     body: [
       { p: "Losing weight should not mean turning down every invitation. Meals out are part of life, and a plan that cannot cope with them will not last." },
       { h: "Before you go" },
@@ -156,6 +162,7 @@ export const ARTICLES: Article[] = [
     summary: "Why energy drinks, fizzy drinks and fruit juice add up so quickly, and the simple swaps that help.",
     topic: "Food",
     minutes: 3,
+    video: "https://iframe.mediadelivery.net/embed/818541/ee5be1ce-568f-4a60-a27d-2fb8fe3d6934",
     body: [
       { p: "Drinks are easy to forget. They do not feel like food, they go down in a minute, and they barely touch your hunger. You can drink several hundred calories and still be ready for your next meal. That makes cutting back on sugary drinks one of the easiest wins there is." },
       { h: "What is in a drink" },
@@ -190,6 +197,7 @@ export const ARTICLES: Article[] = [
     summary: "Stress, boredom and tiredness all send us to the kitchen. How to notice it and what to try.",
     topic: "Body and mind",
     minutes: 4,
+    video: "https://iframe.mediadelivery.net/embed/818541/2354e65b-ee35-4a2c-ab4f-ccf5c5d36aa8",
     body: [
       { p: "Much of our eating has little to do with hunger. We eat because we are stressed, bored, tired, lonely or celebrating, or simply because the food is there. This is normal, and noticing it is the first step to changing it." },
       { h: "Two kinds of hunger" },
@@ -216,6 +224,7 @@ export const ARTICLES: Article[] = [
     summary: "Why a short night makes the next day harder, and how to sleep better.",
     topic: "Body and mind",
     minutes: 3,
+    video: "https://iframe.mediadelivery.net/embed/818541/246d0024-a5f2-464b-a911-2034f8a02864",
     body: [
       { p: "Sleep is rarely the first thing people think of when they want to lose weight, yet it affects almost everything else. After a short night you are hungrier, you crave sweeter and fattier food, and you have less energy to move and less patience to plan." },
       { h: "What poor sleep does" },
@@ -245,6 +254,7 @@ export const ARTICLES: Article[] = [
     summary: "Calories decide your weight, but food quality, movement, sleep and state of mind decide your health.",
     topic: "Getting started",
     minutes: 4,
+    video: "https://iframe.mediadelivery.net/embed/818541/f0ca283b-8ab3-4ad7-9d08-b9358f276729",
     body: [
       { p: "Counting calories is a useful tool, and this journal is built around it. But a number on its own does not tell you how well you are eating or how well you are living. Two people can eat the same calories and feel completely different." },
       { p: "Think of weight loss as resting on four things, like the legs of a table. If one is missing, the others have to work much harder." },
@@ -276,6 +286,7 @@ export const ARTICLES: Article[] = [
     summary: "What fasting is, the common methods, who it suits and who should avoid it.",
     topic: "Food",
     minutes: 4,
+    video: "https://iframe.mediadelivery.net/embed/818541/9ebd7a1b-a44e-4cd7-9e8b-519debfe37bb",
     body: [
       { p: "Intermittent fasting means limiting when you eat, not only what you eat. It has become very popular, and many people find it a simple way to eat less. It is one option among several, and it is not magic." },
       { h: "The common methods" },
@@ -313,6 +324,7 @@ export const ARTICLES: Article[] = [
     summary: "Motivation comes and goes. Here is how to keep going on the days it is missing.",
     topic: "Staying on track",
     minutes: 4,
+    video: "https://iframe.mediadelivery.net/embed/818541/42cfff4e-6d24-4e89-a53e-d82d8cac4f53",
     body: [
       { p: "Almost everyone starts with enthusiasm. A few weeks in, the novelty fades, progress slows, and life gets in the way. This is the point where most attempts end, and it has little to do with willpower. Motivation is a feeling, and feelings come and go. What carries you through is what you set up while you had it." },
       { h: "Know your reason" },
@@ -340,6 +352,7 @@ export const ARTICLES: Article[] = [
     summary: "How much activity you need, why strength matters, and how to start from where you are.",
     topic: "Body and mind",
     minutes: 4,
+    video: "https://iframe.mediadelivery.net/embed/818541/73314955-c0d9-4b96-8f83-7ed19af77024",
     body: [
       { p: "You can lose weight through food alone, but you will lose it better with movement. Activity protects your muscle, improves your mood and sleep, lowers your blood pressure and blood sugar, and is one of the best predictors of keeping weight off once it has gone." },
       { h: "How much?" },
@@ -368,6 +381,7 @@ export const ARTICLES: Article[] = [
     summary: "Stress and low mood make weight loss harder. Small daily habits that help, and when to seek support.",
     topic: "Body and mind",
     minutes: 4,
+    video: "https://iframe.mediadelivery.net/embed/818541/c8cdeed4-e50d-4f2f-9391-ddb233a116c8",
     body: [
       { p: "Weight and mental wellbeing are closely linked, and the link runs both ways. Stress, anxiety and low mood change how we eat, sleep and move. And the pressure we put on ourselves about weight can make all three worse. Looking after your mind is not a distraction from losing weight. It is part of how it is done." },
       { h: "What stress does" },
