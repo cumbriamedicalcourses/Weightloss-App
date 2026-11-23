@@ -73,8 +73,11 @@ async function emailListed(uid: string, variable: string) {
   const a = admin();
   if (!a) return false;
   try {
+    // Not limited to verified emails: the app sends no verification email, so an email and
+    // password account is never marked verified. Firebase allows one account per email, so
+    // a listed email can only be used by whoever registered it.
     const user = await a.auth.getUser(uid);
-    return Boolean(user.email && user.emailVerified !== false && list.includes(user.email.toLowerCase()));
+    return Boolean(user.email && list.includes(user.email.toLowerCase()));
   } catch {
     return false;
   }
