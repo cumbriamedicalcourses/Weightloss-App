@@ -5,13 +5,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { JournalProvider, useJournal } from "@/lib/journal";
+import { Icon, type IconName } from "@/components/icons";
 
-const TABS = [
-  { href: "/journal", label: "Today" },
-  { href: "/journal/plans", label: "Plans" },
-  { href: "/journal/progress", label: "Progress" },
-  { href: "/learn", label: "Learn" },
-  { href: "/journal/profile", label: "Profile" },
+const TABS: { href: string; label: string; icon: IconName }[] = [
+  { href: "/journal", label: "Today", icon: "today" },
+  { href: "/journal/plans", label: "Plans", icon: "plans" },
+  { href: "/journal/progress", label: "Progress", icon: "progress" },
+  { href: "/learn", label: "Learn", icon: "learn" },
+  { href: "/journal/profile", label: "Profile", icon: "profile" },
 ];
 
 function Loading() {
@@ -70,13 +71,18 @@ function Inner({ children }: { children: ReactNode }) {
                 <Link
                   href={t.href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex min-h-14 items-center justify-center text-sm font-semibold ${
+                  className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-semibold ${
                     active ? "text-leaf" : "text-muted hover:text-ink"
                   }`}
                 >
-                  <span className={`border-b-2 pb-0.5 ${active ? "border-leaf" : "border-transparent"}`}>
-                    {t.label}
+                  <span
+                    className={`flex h-7 w-12 items-center justify-center rounded-full transition ${
+                      active ? "bg-leaf-soft" : ""
+                    }`}
+                  >
+                    <Icon name={t.icon} className="size-[22px]" strokeWidth={active ? 2.1 : 1.8} />
                   </span>
+                  {t.label}
                 </Link>
               </li>
             );
