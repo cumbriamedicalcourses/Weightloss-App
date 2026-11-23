@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/icons";
 import { GUARANTEE_DAYS, PLANS, TRIAL_DAYS } from "@/lib/membership-shared";
+import { Logo } from "@/components/logo";
 
 const AMAZON_URL = process.env.NEXT_PUBLIC_AMAZON_URL;
 
@@ -117,7 +118,7 @@ export default function Home() {
   return (
     <>
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-5">
-        <span className="font-display text-lg text-ink">My Weight Loss Journal</span>
+        <Link href="/"><Logo /></Link>
         <nav className="flex items-center gap-5" aria-label="Site">
           <Link href="/learn" className="text-sm font-semibold text-leaf underline-offset-4 hover:underline">
             Learn

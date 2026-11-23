@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Logo } from "@/components/logo";
 
 /** Header and footer shared by the public Learn pages. */
 export default function LearnChrome({
@@ -12,7 +13,7 @@ export default function LearnChrome({
   return (
     <>
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-5 py-5">
-        <Link href="/" className="font-display text-lg text-ink">My Weight Loss Journal</Link>
+        <Link href="/"><Logo /></Link>
         <Link href="/journal" className="text-sm font-semibold text-leaf underline-offset-4 hover:underline">
           Open my journal
         </Link>
