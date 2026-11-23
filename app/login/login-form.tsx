@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { AuthProvider, authMessage, useAuth } from "@/lib/auth";
+import { Logo } from "@/components/logo";
 
 function Form() {
   const auth = useAuth();
@@ -56,8 +57,8 @@ function Form() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 py-10">
-      <Link href="/" className="font-display text-lg text-ink">
-        My Weight Loss Journal
+      <Link href="/" className="self-start">
+        <Logo />
       </Link>
       <h1 className="mt-8 font-display text-4xl text-ink">
         {signup ? "Start your journal" : "Welcome back"}
