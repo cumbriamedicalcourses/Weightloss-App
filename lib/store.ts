@@ -32,6 +32,10 @@ export interface Store {
   /** Sets the step count for a day, or removes that day when given null. */
   setSteps(uid: string, date: string, steps: number | null): Promise<void>;
   setStepGoal(uid: string, goal: number): Promise<void>;
+  /** Sets the fasting aim in hours, or clears the whole fasting record when given null. */
+  setFastingGoal(uid: string, hours: number | null): Promise<void>;
+  /** Sets the hours fasted for a day, or removes that day when given null. */
+  setFast(uid: string, date: string, hours: number | null): Promise<void>;
   /** Saves the measurements for a day, or removes that day when given null. */
   setMeasurement(uid: string, date: string, m: Measurement | null): Promise<void>;
   /** Sets the injection medicine, or clears the whole injection record when given null. */
@@ -78,6 +82,7 @@ const firestoreStore: Store = {
     delete fields.glp1;
     delete fields.steps;
     delete fields.stepGoal;
+    delete fields.fasting;
     await setDoc(doc(firestore(), "users", uid), clean(fields), { merge: true });
   },
   async setFavourites(uid, list) {
@@ -95,6 +100,12 @@ const firestoreStore: Store = {
   },
   async setStepGoal(uid, goal) {
     void updateDoc(doc(firestore(), "users", uid), { stepGoal: goal });
+  },
+  async setFastingGoal(uid, hours) {
+    void updateDoc(doc(firestore(), "users", uid), hours === null ? { fasting: deleteField() } : { "fasting.goalHours": hours });
+  },
+  async setFast(uid, date, hours) {
+    void updateDoc(doc(firestore(), "users", uid), { [`fasting.log.${date}`]: hours ?? deleteField() });
   },
   async setMeasurement(uid, date, m) {
     // A merge would keep sites that were cleared, so the day is replaced whole.
@@ -215,7 +226,7 @@ function watch(run: () => void): Unsub {
 const localStore: Store = {
   watchProfile: (uid, cb) => watch(() => cb(read(uid).profile)),
   async saveProfile(uid, p) {
-    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites, savedMeals: d.profile?.savedMeals, water: d.profile?.water, measurements: d.profile?.measurements, glp1: d.profile?.glp1, steps: d.profile?.steps, stepGoal: d.profile?.stepGoal }));
+    write(uid, (d) => void (d.profile = { ...p, favourites: d.profile?.favourites, savedMeals: d.profile?.savedMeals, water: d.profile?.water, measurements: d.profile?.measurements, glp1: d.profile?.glp1, steps: d.profile?.steps, stepGoal: d.profile?.stepGoal, fasting: d.profile?.fasting }));
   },
   async setFavourites(uid, list) {
     write(uid, (d) => {
@@ -244,6 +255,22 @@ const localStore: Store = {
   async setStepGoal(uid, goal) {
     write(uid, (d) => {
       if (d.profile) d.profile.stepGoal = goal;
+    });
+  },
+  async setFastingGoal(uid, hours) {
+    write(uid, (d) => {
+      if (!d.profile) return;
+      if (hours === null) delete d.profile.fasting;
+      else d.profile.fasting = { ...d.profile.fasting, goalHours: hours };
+    });
+  },
+  async setFast(uid, date, hours) {
+    write(uid, (d) => {
+      if (!d.profile) return;
+      const log = { ...d.profile.fasting?.log };
+      if (hours === null) delete log[date];
+      else log[date] = hours;
+      d.profile.fasting = { ...d.profile.fasting, log };
     });
   },
   async setMeasurement(uid, date, m) {
