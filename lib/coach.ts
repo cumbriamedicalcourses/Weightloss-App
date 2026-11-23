@@ -1,6 +1,7 @@
 import { ACTIVITY_LABEL, bmi, proteinTarget } from "./calc";
 import { addDays } from "./dates";
 import { levelOf } from "./exercise-plan";
+import { fastingSummary } from "./fasting";
 import { measuredDays, trend } from "./measurements";
 import type { Entry, Profile, WeightLog } from "./types";
 
@@ -62,6 +63,14 @@ export function coachContext(input: {
 
   const waist = trend(measuredDays(profile), "waist");
   if (waist) lines.push(`Waist: ${waist.latest} cm on ${waist.latestDate} (first measured ${waist.first} cm)`);
+
+  const fast = fastingSummary(profile, today, 7);
+  if (fast) {
+    lines.push(
+      `Intermittent fasting: aims for ${fast.goal} hours a day` +
+        (fast.entered ? `; last 7 days averaged ${fast.average} hours over ${fast.entered} days entered, aim reached on ${fast.daysAtGoal}` : "; no hours entered in the last 7 days"),
+    );
+  }
 
   lines.push("");
   lines.push(`Last ${COACH_DAYS} days (a day with no food logged was probably not logged, not a fast):`);

@@ -34,8 +34,17 @@ export interface Profile {
   steps?: Record<string, number>;
   /** The person's daily step goal. Missing means the default. */
   stepGoal?: number;
+  /** Intermittent fasting, for people who choose to record it. */
+  fasting?: Fasting;
   /** Weight-loss injections, for people who use them. */
   glp1?: Glp1;
+}
+
+export interface Fasting {
+  /** The hours of fasting the person aims for in a day. Set when they start a record. */
+  goalHours?: number;
+  /** Hours fasted, by the day the fast ended (YYYY-MM-DD). */
+  log?: Record<string, number>;
 }
 
 export interface Glp1 {

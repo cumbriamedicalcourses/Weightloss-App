@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import MeasurementsCard from "@/components/measurements-card";
+import { FastingProgress } from "@/components/fasting-card";
 import { StepsWeek } from "@/components/steps-card";
 import ProgressPhotos from "@/components/progress-photos";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
@@ -271,6 +272,8 @@ export default function ProgressPage() {
       </section>
 
       <StepsWeek />
+
+      <FastingProgress />
 
       <MeasurementsCard />
 

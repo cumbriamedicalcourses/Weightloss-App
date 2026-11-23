@@ -2,6 +2,7 @@
 
 import { nudgeFor, remindersOf } from "@/lib/reminders";
 import Link from "next/link";
+import { FastingToday } from "@/components/fasting-card";
 import { StepsToday } from "@/components/steps-card";
 import { useEffect, useState } from "react";
 import AddExercise from "@/components/add-exercise";
@@ -333,6 +334,7 @@ export default function TodayPage() {
       </section>
 
       <StepsToday key={date} date={date} />
+      <FastingToday key={`fast-${date}`} date={date} />
 
       {entries && !list.length ? (
         <p className="mt-10 text-center text-muted">
