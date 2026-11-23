@@ -176,6 +176,12 @@ export default function ProfilePage() {
     }
     setDataBusy(true);
     try {
+      // End any membership first, so nobody is charged for an account that no longer exists.
+      const token = await auth.getToken();
+      if (token) {
+        const res = await fetch("/api/membership/cancel", { method: "POST", headers: { authorization: `Bearer ${token}` } });
+        if (!res.ok) throw new Error("Membership not cancelled");
+      }
       await store.deleteAll(user.uid);
       await deleteAllPhotos(user.uid).catch(() => {});
       try {
@@ -402,6 +408,16 @@ export default function ProfilePage() {
 
         <button className="btn w-full">{isNew ? "Open my journal" : "Save profile"}</button>
       </form>
+
+      {!isNew ? (
+        <Link href="/journal/membership" className="card mt-10 flex items-center justify-between gap-3 p-4 transition hover:border-leaf">
+          <span>
+            <span className="block font-semibold text-ink">Membership</span>
+            <span className="block text-sm text-muted">Your plan, payments and cancelling</span>
+          </span>
+          <span aria-hidden className="text-xl text-leaf">›</span>
+        </Link>
+      ) : null}
 
       {!isNew ? (
         <section className="mt-10 border-t border-line pt-6" aria-label="Your data">
