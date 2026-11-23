@@ -16,6 +16,8 @@ import { WATER_GOAL, totalUnits } from "@/lib/drinks";
 import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
 import type { Entry, Meal } from "@/lib/types";
+import { Icon, type IconName } from "@/components/icons";
+import { STREAK_WINDOW_DAYS, streak } from "@/lib/milestones";
 
 const MEAL_LABEL: Record<Meal, string> = {
   breakfast: "Breakfast",
@@ -24,6 +26,42 @@ const MEAL_LABEL: Record<Meal, string> = {
   snack: "Snacks",
 };
 const MEAL_ORDER: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
+const MEAL_ICON: Record<Meal, IconName> = {
+  breakfast: "breakfast",
+  lunch: "lunch",
+  dinner: "dinner",
+  snack: "snack",
+};
+
+/** A ring that fills as the day's calories are eaten, with what is left in the middle. */
+function CalorieRing({ pct, left, over }: { pct: number; left: number; over: boolean }) {
+  const r = 52;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className="relative size-40 shrink-0">
+      <svg viewBox="0 0 120 120" className="size-full -rotate-90" aria-hidden>
+        <circle cx="60" cy="60" r={r} fill="none" strokeWidth="11" className="stroke-leaf-soft" />
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          strokeWidth="11"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - pct / 100)}
+          className={`transition-[stroke-dashoffset] duration-700 ${over ? "stroke-clay" : "stroke-leaf"}`}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        <span className={`font-display text-4xl leading-none tabular-nums ${over ? "text-clay" : "text-leaf"}`}>
+          {Math.abs(left).toLocaleString()}
+        </span>
+        <span className="mt-1 text-xs text-muted">{over ? "kcal over" : "kcal left"}</span>
+      </div>
+    </div>
+  );
+}
 
 function Row({ entry, onDelete }: { entry: Entry; onDelete: () => void }) {
   const base = entry.kind === "exercise" ? (entry.minutes ? `${entry.minutes} minutes` : "") : entry.portion;
@@ -68,12 +106,18 @@ export default function TodayPage() {
 
   const [saving, setSaving] = useState<Meal | null>(null);
   const [dayBefore, setDayBefore] = useState<Entry[]>([]);
+  const [recent, setRecent] = useState<Entry[]>([]);
 
   useEffect(() => store.watchEntries(user.uid, date, date, setEntries), [user.uid, date]);
   useEffect(() => {
     const prev = addDays(date, -1);
     return store.watchEntries(user.uid, prev, prev, setDayBefore);
   }, [user.uid, date]);
+
+  useEffect(() => {
+    const t = dayKey();
+    return store.watchEntries(user.uid, addDays(t, -STREAK_WINDOW_DAYS), t, setRecent);
+  }, [user.uid]);
 
   if (!profile) return null;
 
@@ -90,6 +134,7 @@ export default function TodayPage() {
   const isToday = date === dayKey();
   const unit = profile.weightUnit;
   const plan = planTarget(profile, currentKg, dayKey());
+  const run = streak(recent, dayKey()).current;
 
   const sum = (k: "protein" | "carbs" | "fat") => Math.round(food.reduce((s, e) => s + (e[k] ?? 0), 0));
   const protein = sum("protein");
@@ -141,7 +186,15 @@ export default function TodayPage() {
         <button type="button" aria-label="Previous day" className="flex size-11 items-center justify-center rounded-lg text-2xl text-muted hover:text-ink" onClick={() => go(-1)}>
           ‹
         </button>
-        <h1 className="font-display text-2xl text-ink">{friendlyDay(date)}</h1>
+        <div className="flex flex-col items-center">
+          <h1 className="font-display text-2xl text-ink">{friendlyDay(date)}</h1>
+          {run >= 2 ? (
+            <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-clay-soft px-2.5 py-0.5 text-xs font-semibold text-clay">
+              <Icon name="flame" className="size-3.5" />
+              {run}-day streak
+            </p>
+          ) : null}
+        </div>
         <button
           type="button"
           aria-label="Next day"
@@ -198,35 +251,37 @@ export default function TodayPage() {
       </section>
 
       <section className="card mt-4 p-5" aria-label="Calories for the day">
-        <p className="text-sm text-muted">{over ? "Over today's target by" : "Left today"}</p>
-        <p className={`font-display text-6xl tabular-nums ${over ? "text-clay" : "text-leaf"}`}>
-          {Math.abs(left).toLocaleString()}
-          <span className="ml-2 text-lg text-muted">kcal</span>
-        </p>
         <div
-          className="mt-4 h-2.5 overflow-hidden rounded-full bg-leaf-soft"
+          className="flex items-center gap-5"
           role="progressbar"
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label="Share of today's calories eaten"
+          aria-valuetext={`${Math.abs(left).toLocaleString()} kcal ${over ? "over" : "left"}`}
         >
-          <div className={`h-full rounded-full ${over ? "bg-clay" : "bg-leaf"}`} style={{ width: `${pct}%` }} />
+          <CalorieRing pct={pct} left={left} over={over} />
+          <dl className="min-w-0 flex-1 space-y-3">
+            <div className="flex items-baseline justify-between gap-2 border-b border-line pb-2">
+              <dt className="text-sm text-muted">Target</dt>
+              <dd className="text-lg tabular-nums text-ink">{target.toLocaleString()}</dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-2 border-b border-line pb-2">
+              <dt className="text-sm text-muted">Eaten</dt>
+              <dd className="text-lg tabular-nums text-ink">{eaten.toLocaleString()}</dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-2">
+              <dt className="text-sm text-muted">Exercise</dt>
+              <dd className="text-lg tabular-nums text-leaf">{burned.toLocaleString()}</dd>
+            </div>
+          </dl>
         </div>
-        <dl className="mt-4 grid grid-cols-3 text-center">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted">Target</dt>
-            <dd className="mt-0.5 text-lg tabular-nums text-ink">{target.toLocaleString()}</dd>
-          </div>
-          <div className="border-x border-line">
-            <dt className="text-xs uppercase tracking-wide text-muted">Eaten</dt>
-            <dd className="mt-0.5 text-lg tabular-nums text-ink">{eaten.toLocaleString()}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-muted">Exercise</dt>
-            <dd className="mt-0.5 text-lg tabular-nums text-leaf">{burned.toLocaleString()}</dd>
-          </div>
-        </dl>
+        {!isToday && food.length && !over ? (
+          <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-clay-soft px-3 py-1 text-sm font-semibold text-clay">
+            <Icon name="check" className="size-4" strokeWidth={2.4} />
+            Within your target. Well done.
+          </p>
+        ) : null}
         {burned ? (
           <p className="mt-3 text-xs text-muted">
             Exercise counts towards your plan and is not added to your food allowance.
@@ -278,15 +333,22 @@ export default function TodayPage() {
       ) : null}
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <button type="button" className="btn" onClick={() => setSheet("food")}>Add food</button>
-        <button type="button" className="btn-quiet" onClick={() => setSheet("exercise")}>Add exercise</button>
+        <button type="button" className="btn" onClick={() => setSheet("food")}>
+          <Icon name="lunch" /> Add food
+        </button>
+        <button type="button" className="btn-quiet" onClick={() => setSheet("exercise")}>
+          <Icon name="exercise" className="size-5 text-leaf" /> Add exercise
+        </button>
       </div>
 
       <Link
         href="/journal/coach"
         className="card mt-3 flex items-center justify-between gap-3 p-4 transition hover:border-leaf"
       >
-        <span>
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-leaf-soft text-leaf">
+          <Icon name="coach" />
+        </span>
+        <span className="min-w-0 flex-1">
           <span className="block font-semibold text-ink">Ask your coach</span>
           <span className="block text-sm text-muted">Questions answered using your own journal</span>
         </span>
@@ -296,7 +358,8 @@ export default function TodayPage() {
       <section className="card mt-3 p-4" aria-label="Water and alcohol for the day">
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-ink">
+            <p className="flex items-center gap-1.5 text-ink">
+              <Icon name="water" className="size-4 text-leaf" />
               Water <span className="tabular-nums text-muted">{water} of {WATER_GOAL} glasses</span>
             </p>
             <div className="mt-2 flex gap-1" aria-hidden>
@@ -354,7 +417,12 @@ export default function TodayPage() {
         return (
           <section key={meal} className="mt-6">
             <div className="flex items-baseline justify-between">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">{MEAL_LABEL[meal]}</h2>
+              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
+                <span className="flex size-7 items-center justify-center rounded-lg bg-leaf-soft text-leaf">
+                  <Icon name={MEAL_ICON[meal]} className="size-4" />
+                </span>
+                {MEAL_LABEL[meal]}
+              </h2>
               <span className="text-sm tabular-nums text-muted">{rows.reduce((s, e) => s + e.calories, 0)} kcal</span>
             </div>
             <div className="card mt-2 px-4">
@@ -378,7 +446,12 @@ export default function TodayPage() {
       {exercise.length ? (
         <section className="mt-6">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Exercise</h2>
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
+              <span className="flex size-7 items-center justify-center rounded-lg bg-leaf-soft text-leaf">
+                <Icon name="exercise" className="size-4" />
+              </span>
+              Exercise
+            </h2>
             <span className="text-sm tabular-nums text-muted">{burned} kcal</span>
           </div>
           <ul className="card mt-2 px-4">

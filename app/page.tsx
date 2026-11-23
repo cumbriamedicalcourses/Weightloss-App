@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon, type IconName } from "@/components/icons";
 
 const AMAZON_URL = process.env.NEXT_PUBLIC_AMAZON_URL;
 
@@ -17,38 +18,95 @@ const steps = [
   },
 ];
 
-function LedgerPreview() {
-  const rows = [
-    ["Breakfast", "Porridge with banana", "310"],
-    ["Lunch", "Chicken salad wrap", "450"],
-    ["Dinner", "Salmon, new potatoes, greens", "560"],
-    ["Snack", "Apple", "80"],
+const features: { icon: IconName; title: string; body: string }[] = [
+  { icon: "camera", title: "Photo estimates", body: "Snap your plate and check the suggested calories." },
+  { icon: "barcode", title: "Barcode scanner", body: "Scan packets and cans for exact label figures." },
+  { icon: "plans", title: "12 meal plans", body: "With swaps and a ready-made shopping list." },
+  { icon: "exercise", title: "Exercise programme", body: "A weekly plan for under 50s and over 50s." },
+  { icon: "coach", title: "Personal coach", body: "Questions answered using your own journal." },
+  { icon: "video", title: "Short videos", body: "14 narrated lessons on the habits that matter." },
+  { icon: "progress", title: "Progress and streaks", body: "Weight trend, measurements and milestones." },
+  { icon: "report", title: "GP report", body: "A tidy summary to take to your appointment." },
+];
+
+/** A stand-in for the book cover until the real cover image is added. */
+function BookCover() {
+  return (
+    <div className="relative flex aspect-[2/3] w-32 flex-col justify-between rounded-r-lg rounded-l-sm bg-gradient-to-br from-leaf to-[#0b2c4d] p-3.5 text-white shadow-[0_30px_60px_-25px_rgb(18_40_58/0.7)] sm:w-44 sm:p-4">
+      <div className="absolute inset-y-0 left-0 w-2 rounded-l-sm bg-black/20" aria-hidden />
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#ffb98c]">The book</p>
+      <div>
+        <p className="font-display text-xl leading-tight sm:text-3xl">Weight Loss Journal</p>
+        <div className="mt-3 h-0.5 w-10 bg-clay" aria-hidden />
+      </div>
+      <p className="text-[11px] text-white/75">Your daily record</p>
+    </div>
+  );
+}
+
+/** A phone showing a simplified Today screen. */
+function PhonePreview() {
+  const r = 34;
+  const c = 2 * Math.PI * r;
+  const meals: [IconName, string, string][] = [
+    ["breakfast", "Porridge with banana", "310"],
+    ["lunch", "Chicken salad wrap", "450"],
+    ["dinner", "Salmon and greens", "560"],
   ];
   return (
-    <div className="card relative w-full max-w-sm rotate-1 p-6 shadow-[0_24px_60px_-30px_rgb(31_42_36/0.45)]">
-      <div className="absolute inset-y-0 left-9 w-px bg-clay/30" aria-hidden />
-      <p className="pl-8 font-display text-lg text-ink">Tuesday</p>
-      <ul className="mt-3 text-sm">
-        {rows.map(([meal, food, kcal]) => (
-          <li key={meal} className="flex items-baseline justify-between gap-3 border-b border-line py-2.5 pl-8">
-            <span>
-              <span className="block text-xs uppercase tracking-wide text-muted">{meal}</span>
-              {food}
+    <div className="w-60 rounded-[2.4rem] border-[7px] border-ink bg-paper p-3 shadow-[0_40px_80px_-30px_rgb(18_40_58/0.6)] sm:w-64">
+      <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-ink/80" aria-hidden />
+      <div className="flex items-center justify-between px-1">
+        <p className="font-display text-lg text-ink">Today</p>
+        <p className="inline-flex items-center gap-1 rounded-full bg-clay-soft px-2 py-0.5 text-[10px] font-semibold text-clay">
+          <Icon name="flame" className="size-3" /> 12-day streak
+        </p>
+      </div>
+      <div className="card mt-2 flex items-center gap-3 p-3">
+        <div className="relative size-24 shrink-0">
+          <svg viewBox="0 0 80 80" className="size-full -rotate-90" aria-hidden>
+            <circle cx="40" cy="40" r={r} fill="none" strokeWidth="8" className="stroke-leaf-soft" />
+            <circle cx="40" cy="40" r={r} fill="none" strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * 0.2} className="stroke-leaf" />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="font-display text-xl leading-none text-leaf">200</span>
+            <span className="text-[9px] text-muted">kcal left</span>
+          </div>
+        </div>
+        <dl className="flex-1 space-y-1 text-[11px]">
+          <div className="flex justify-between"><dt className="text-muted">Target</dt><dd className="tabular-nums">1,520</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Eaten</dt><dd className="tabular-nums">1,320</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Exercise</dt><dd className="tabular-nums text-leaf">215</dd></div>
+        </dl>
+      </div>
+      <ul className="card mt-2 px-3 text-[11px]">
+        {meals.map(([icon, food, kcal]) => (
+          <li key={food} className="flex items-center gap-2 border-b border-line py-2 last:border-b-0">
+            <span className="flex size-6 items-center justify-center rounded-md bg-leaf-soft text-leaf">
+              <Icon name={icon} className="size-3.5" />
             </span>
-            <span className="tabular-nums text-ink">{kcal}</span>
+            <span className="flex-1 truncate">{food}</span>
+            <span className="tabular-nums">{kcal}</span>
           </li>
         ))}
-        <li className="flex items-baseline justify-between gap-3 border-b border-line py-2.5 pl-8">
-          <span>
-            <span className="block text-xs uppercase tracking-wide text-muted">Exercise</span>
-            Brisk walk, 40 minutes
-          </span>
-          <span className="tabular-nums text-leaf">−215</span>
-        </li>
       </ul>
-      <div className="mt-4 flex items-baseline justify-between pl-8">
-        <span className="text-sm text-muted">Left today</span>
-        <span className="font-display text-3xl tabular-nums text-leaf">465</span>
+      <div className="mt-2 grid grid-cols-5 border-t border-line pt-2 text-leaf/70" aria-hidden>
+        {(["today", "plans", "progress", "learn", "profile"] as IconName[]).map((n, i) => (
+          <Icon key={n} name={n} className={`mx-auto size-4 ${i === 0 ? "text-leaf" : "text-muted"}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BookAndPhone() {
+  return (
+    <div className="relative pb-4">
+      <div className="ml-[88px] sm:ml-[132px]">
+        <PhonePreview />
+      </div>
+      <div className="absolute bottom-0 left-0 z-10 -rotate-6">
+        <BookCover />
       </div>
     </div>
   );
@@ -79,12 +137,12 @@ export default function Home() {
               Your journal, kept up to date in your pocket.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-              Weight Loss Journal gives you the pages. This free app does the sums: log your food,
-              drink and exercise, and see your calories in and out for the day.
+              Weight Loss Journal gives you the pages. This app does the sums: log your food,
+              drink and exercise, follow a plan made for you, and see your progress week by week.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login?new=1" className="btn">
-                Start your journal
+                Start your 7-day free trial
               </Link>
               {AMAZON_URL ? (
                 <a href={AMAZON_URL} className="btn-quiet" target="_blank" rel="noopener noreferrer">
@@ -92,10 +150,10 @@ export default function Home() {
                 </a>
               ) : null}
             </div>
-            <p className="mt-4 text-sm text-muted">Free to use. Works on your phone, tablet and computer.</p>
+            <p className="mt-4 text-sm text-muted">7-day free trial, then one simple membership. Works on your phone, tablet and computer.</p>
           </div>
           <div className="flex justify-center md:justify-end">
-            <LedgerPreview />
+            <BookAndPhone />
           </div>
         </section>
 
@@ -112,6 +170,22 @@ export default function Home() {
               ))}
             </ol>
           </div>
+        </section>
+
+        <section className="mx-auto w-full max-w-5xl px-5 pt-16">
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-clay">Everything in one place</p>
+          <h2 className="mt-3 font-display text-3xl text-ink">One app for the whole journey</h2>
+          <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {features.map((f) => (
+              <li key={f.title} className="card p-4">
+                <span className="flex size-10 items-center justify-center rounded-xl bg-leaf-soft text-leaf">
+                  <Icon name={f.icon} />
+                </span>
+                <h3 className="mt-3 font-semibold text-ink">{f.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{f.body}</p>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className="mx-auto w-full max-w-5xl px-5 py-16">
@@ -134,7 +208,7 @@ export default function Home() {
           </div>
           <div className="mt-12">
             <Link href="/login?new=1" className="btn">
-              Start your journal
+              Start your 7-day free trial
             </Link>
           </div>
         </section>
