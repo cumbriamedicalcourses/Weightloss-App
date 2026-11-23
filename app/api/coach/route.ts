@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { admin } from "@/lib/admin";
 import { HISTORY_MAX, QUESTION_MAX } from "@/lib/coach";
 import { verifyRequest } from "@/lib/verify-token";
+import { canUse } from "@/lib/membership";
 
 const SYSTEM = `You are the coach inside Weight Loss Journal, a UK web app where adults log food, exercise and weight to lose weight steadily. You answer the person's questions about their own journal, food, activity, habits and motivation.
 
@@ -63,6 +64,9 @@ const UNAVAILABLE = "The coach isn't available at the moment. Please try again l
 export async function POST(req: Request) {
   const uid = await verifyRequest(req);
   if (!uid) return NextResponse.json({ error: "Please sign in again." }, { status: 401 });
+  if (!(await canUse(uid))) {
+    return NextResponse.json({ error: "This needs an active membership or free trial." }, { status: 402 });
+  }
   if (!process.env.ANTHROPIC_API_KEY) return NextResponse.json({ error: UNAVAILABLE }, { status: 503 });
 
   let body: { messages?: unknown; journal?: unknown };

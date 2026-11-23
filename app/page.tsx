@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/icons";
+import { GUARANTEE_DAYS, PLANS, TRIAL_DAYS } from "@/lib/membership-shared";
 
 const AMAZON_URL = process.env.NEXT_PUBLIC_AMAZON_URL;
 
@@ -206,10 +207,46 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className="mt-12">
-            <Link href="/login?new=1" className="btn">
-              Start your 7-day free trial
-            </Link>
+        </section>
+
+        <section className="border-t border-line bg-card" aria-labelledby="pricing">
+          <div className="mx-auto w-full max-w-5xl px-5 py-16">
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-clay">One simple membership</p>
+            <h2 id="pricing" className="mt-3 font-display text-3xl text-ink">Try everything free for {TRIAL_DAYS} days</h2>
+            <p className="mt-3 max-w-2xl leading-relaxed text-muted">
+              Every feature is included in both plans. Cancel before your free week ends and you pay nothing.
+            </p>
+            <div className="mt-8 grid gap-4 md:max-w-3xl md:grid-cols-2">
+              {PLANS.map((p) => (
+                <div key={p.id} className={`relative rounded-2xl border-2 p-6 ${p.id === "yearly" ? "border-leaf" : "border-line"}`}>
+                  {p.id === "yearly" ? (
+                    <span className="absolute -top-3 left-6 rounded-full bg-clay px-3 py-0.5 text-xs font-semibold text-white">Best value</span>
+                  ) : null}
+                  <p className="font-semibold text-ink">{p.name}</p>
+                  <p className="mt-2">
+                    <span className="font-display text-4xl text-ink">{p.price}</span>
+                    <span className="ml-1 text-muted">{p.per}</span>
+                  </p>
+                  <p className="mt-1 text-sm text-muted">{p.note}</p>
+                </div>
+              ))}
+            </div>
+            <ul className="mt-6 space-y-2 text-ink">
+              {[
+                `${TRIAL_DAYS}-day free trial, then your chosen plan`,
+                `${GUARANTEE_DAYS}-day money-back guarantee on your first payment`,
+                "Cancel at any time from your profile",
+              ].map((t) => (
+                <li key={t} className="flex items-center gap-2">
+                  <Icon name="check" className="size-5 text-leaf" strokeWidth={2.4} /> {t}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8">
+              <Link href="/login?new=1" className="btn">
+                Start your {TRIAL_DAYS}-day free trial
+              </Link>
+            </div>
           </div>
         </section>
       </main>

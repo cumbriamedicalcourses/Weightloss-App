@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const contact = CONTACT_EMAIL ? `email ${CONTACT_EMAIL}` : "use the contact details on this website";
 
 const BODY: Block[] = [
-  { p: "My Weight Loss Journal is a free companion to the Weight Loss Journal book. This page explains in plain words what information the app holds about you and what happens to it. We collect only what the journal needs to work, we do not sell it, and we do not use it for advertising." },
+  { p: "My Weight Loss Journal is the companion app to the Weight Loss Journal book. This page explains in plain words what information the app holds about you and what happens to it. We collect only what the journal needs to work, we do not sell it, and we do not use it for advertising." },
   { h: "What we collect" },
   { list: [
     "Your account: your email address and first name, and your basic Google profile if you sign in with Google. Passwords are handled by Google's sign-in service and we never see them.",
@@ -25,6 +25,7 @@ const BODY: Block[] = [
   { list: [
     "Google Firebase stores your account and your journal, and provides sign-in. Google may process account information in the United States and other countries under its standard legal safeguards.",
     "Hostinger hosts the website.",
+    "Stripe takes membership payments. You enter your card details on Stripe's own secure page, and we never see or keep your full card number. Stripe tells us your membership status, your plan and when it renews, which we keep with your account. Stripe keeps payment records as the law requires and may process them in the United States under its standard legal safeguards.",
     "Anthropic provides the service that estimates calories from a photo or a description. The photo or text is sent for that purpose without your name or email address.",
     "Anthropic also writes the answers when you ask the coach a question. Your question, the recent messages in that chat and a summary of your journal (such as your age, height, weights, daily calorie totals, exercise and today's food) are sent for that purpose without your name or email address. The chat itself is kept only in the browser on your own device. We keep a count of how many questions each account asks in a day, to keep costs under control.",
     "USDA FoodData Central provides the food search. Only the words you search for are sent.",
@@ -57,5 +58,5 @@ const BODY: Block[] = [
 ];
 
 export default function PrivacyPage() {
-  return <LegalPage title="Privacy policy" updated="22 November 2026" body={BODY} />;
+  return <LegalPage title="Privacy policy" updated="23 November 2026" body={BODY} />;
 }

@@ -3,6 +3,7 @@ import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyRequest } from "@/lib/verify-token";
+import { canUse } from "@/lib/membership";
 import type { EstimateResult } from "@/lib/types";
 
 const Estimate = z.object({
@@ -54,6 +55,9 @@ function allow(uid: string) {
 export async function POST(req: Request) {
   const uid = await verifyRequest(req);
   if (!uid) return NextResponse.json({ error: "Please sign in again." }, { status: 401 });
+  if (!(await canUse(uid))) {
+    return NextResponse.json({ error: "This needs an active membership or free trial." }, { status: 402 });
+  }
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
