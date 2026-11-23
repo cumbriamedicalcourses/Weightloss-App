@@ -63,9 +63,9 @@ export async function getMembership(uid: string): Promise<MembershipRecord> {
   return (snap.data() as MembershipRecord | undefined) ?? { status: "none" };
 }
 
-/** People who use the app without paying, such as the owner, listed by email in FREE_ACCESS_EMAILS. */
-async function hasFreeAccess(uid: string) {
-  const list = (process.env.FREE_ACCESS_EMAILS ?? "")
+/** Whether the person's sign-in email is on a comma-separated list in an environment variable. */
+async function emailListed(uid: string, variable: string) {
+  const list = (process.env[variable] ?? "")
     .split(",")
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
@@ -80,10 +80,15 @@ async function hasFreeAccess(uid: string) {
   }
 }
 
+/**
+ * People who use the app without paying, such as the owner, are listed in FREE_ACCESS_EMAILS.
+ * Before membership is switched on for everyone, accounts listed in MEMBERSHIP_TEST_EMAILS
+ * already see it, so the whole sign-up can be tried with a Stripe test card.
+ */
 export async function membershipView(uid: string): Promise<MembershipView> {
-  const required = membershipRequired();
+  const required = membershipRequired() || (stripe() !== null && (await emailListed(uid, "MEMBERSHIP_TEST_EMAILS")));
   const m = required ? await getMembership(uid) : { status: "none" as const };
-  const free = required ? await hasFreeAccess(uid) : false;
+  const free = required ? await emailListed(uid, "FREE_ACCESS_EMAILS") : false;
   return {
     required,
     access: !required || free || statusGivesAccess(m.status),
