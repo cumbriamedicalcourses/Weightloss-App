@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { exerciseCalories, formatWeight, proteinTarget } from "@/lib/calc";
+import { formatWeight, proteinTarget } from "@/lib/calc";
 import { weeklyCheckIn } from "@/lib/checkin";
 import { planReview } from "@/lib/plan-review";
 import { addDays, dayKey, parseDay } from "@/lib/dates";
-import { levelOf, sessions, weeklyMinutes } from "@/lib/exercise-plan";
+import { OLDER_FROM_AGE, isOlder, levelOf, sessionKcal, sessions, weeklyKcal, weeklyMinutes } from "@/lib/exercise-plan";
 import { useJournal } from "@/lib/journal";
 import { DAY_NAMES, nearestBand } from "@/lib/plans";
 import { store } from "@/lib/store";
@@ -44,7 +44,7 @@ export default function PlanPage() {
       }),
       plan,
       target,
-      plannedMinutes: weeklyMinutes(profile.exerciseLevel),
+      plannedMinutes: weeklyMinutes(profile.exerciseLevel, isOlder(profile.birthYear, new Date().getFullYear())),
       formatWeight: (kg) => formatWeight(kg, unit),
       formatDate: longDate,
       goalKg: profile.goalWeightKg,
@@ -56,8 +56,11 @@ export default function PlanPage() {
 
   const plan = planTarget(profile, currentKg, today);
   const level = levelOf(profile.exerciseLevel);
-  const list = sessions(profile.exerciseLevel);
-  const planned = weeklyMinutes(profile.exerciseLevel);
+  const older = isOlder(profile.birthYear, new Date().getFullYear());
+  const list = sessions(profile.exerciseLevel, older);
+  const planned = weeklyMinutes(profile.exerciseLevel, older);
+  const aerobicMinutes = list.filter((s) => s.kind === "aerobic").reduce((n, s) => n + s.minutes, 0);
+  const plannedKcal = weeklyKcal(profile.exerciseLevel, currentKg, older);
   const exercise = week.filter((e) => e.kind === "exercise");
   const done = exercise.reduce((s, e) => s + (e.minutes ?? 0), 0);
   const longDate = (d: string) => parseDay(d).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
@@ -158,8 +161,12 @@ export default function PlanPage() {
         ) : (
           <>
             <p className="mt-1 text-sm text-muted">
-              {level.label}: {level.detail}. A brisk walk is fast enough to feel warm and breathe harder while still
-              able to talk. Cycling or swimming for the same time works just as well.
+              {level.label}, the programme for {older ? `people aged ${OLDER_FROM_AGE} and over` : `people under ${OLDER_FROM_AGE}`}:{" "}
+              {aerobicMinutes} minutes of aerobic exercise and {planned - aerobicMinutes} minutes of strength training a week.
+            </p>
+            <p className="mt-3 rounded-xl bg-leaf-soft px-3.5 py-2.5 text-ink">
+              Follow it exactly and you burn about <strong className="tabular-nums">{plannedKcal.toLocaleString()} kcal</strong> a week
+              at your current weight. This is an estimate, and it is a bonus: your food target stays the same.
             </p>
             <div
               className="mt-4 h-2.5 overflow-hidden rounded-full bg-leaf-soft"
@@ -179,43 +186,59 @@ export default function PlanPage() {
                 const nth = (seen[s.name] = (seen[s.name] ?? 0) + 1);
                 const isDone = logged(s.name) >= nth;
                 return (
-                  <li key={`${s.day}|${s.name}`} className="flex items-center gap-3 py-2.5">
-                    <div className="min-w-0 flex-1">
-                      <p className={isDone ? "text-muted line-through" : "text-ink"}>
-                        {s.name === "Walking, brisk" ? "Brisk walk" : s.name}, {s.minutes} minutes
-                      </p>
-                      <p className="text-sm text-muted">
-                        {DAY_NAMES[s.day]}
-                        {s.day === todayIndex ? " (today)" : ""}
-                      </p>
+                  <li key={`${s.day}|${s.name}`} className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-muted">
+                          {DAY_NAMES[s.day]}
+                          {s.day === todayIndex ? " (today)" : ""}
+                        </p>
+                        <p className={`font-semibold ${isDone ? "text-muted line-through" : "text-ink"}`}>
+                          {s.name}, {s.minutes} minutes
+                        </p>
+                        <p className="text-sm tabular-nums text-muted">about {sessionKcal(s, currentKg)} kcal</p>
+                      </div>
+                      {isDone ? (
+                        <span className="text-sm font-semibold text-leaf">Done</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="min-h-11 rounded-xl border border-line px-3 text-sm font-semibold text-leaf hover:border-leaf"
+                          onClick={() =>
+                            void store.addEntry(user.uid, {
+                              date: today,
+                              kind: "exercise",
+                              name: s.name,
+                              minutes: s.minutes,
+                              calories: sessionKcal(s, currentKg),
+                              source: "plan",
+                            })
+                          }
+                        >
+                          I did this
+                        </button>
+                      )}
                     </div>
-                    {isDone ? (
-                      <span className="text-sm font-semibold text-leaf">Done</span>
+                    {s.exercises ? (
+                      <details className="mt-1">
+                        <summary className="min-h-11 cursor-pointer py-2.5 text-sm font-semibold text-leaf">Show the exercises</summary>
+                        <p className="text-sm text-ink">{s.detail}</p>
+                        <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-sm text-ink">
+                          {s.exercises.map((x) => (
+                            <li key={x}>{x}</li>
+                          ))}
+                        </ol>
+                      </details>
                     ) : (
-                      <button
-                        type="button"
-                        className="min-h-11 rounded-xl border border-line px-3 text-sm font-semibold text-leaf hover:border-leaf"
-                        onClick={() =>
-                          void store.addEntry(user.uid, {
-                            date: today,
-                            kind: "exercise",
-                            name: s.name,
-                            minutes: s.minutes,
-                            calories: exerciseCalories(s.met, currentKg, s.minutes),
-                            source: "plan",
-                          })
-                        }
-                      >
-                        I did this
-                      </button>
+                      <p className="mt-1 text-sm text-muted">{s.detail}</p>
                     )}
                   </li>
                 );
               })}
             </ul>
             <p className="mt-3 text-sm text-muted">
-              Strength exercises can be done at home: sit to stand from a chair, wall press-ups, squats, calf raises
-              and carrying shopping all count. Speak to your GP before starting if you have a heart condition, chest
+              The days not listed are rest days. Start each session with 5 minutes of easy movement, and stop if you
+              feel pain, chest tightness or dizziness. Speak to your GP before starting if you have a heart condition, chest
               pain, dizziness, a joint problem, or are pregnant.
             </p>
           </>

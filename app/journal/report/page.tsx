@@ -7,7 +7,7 @@ import { store } from "@/lib/store";
 import { ACTIVITY_LABEL, formatWeight } from "@/lib/calc";
 import { addDays, dayKey, parseDay } from "@/lib/dates";
 import { WEEKLY_UNIT_GUIDE } from "@/lib/drinks";
-import { levelOf, weeklyMinutes } from "@/lib/exercise-plan";
+import { isOlder, levelOf, weeklyMinutes } from "@/lib/exercise-plan";
 import { formatLength, lengthUnit } from "@/lib/measurements";
 import { injectionRecord } from "@/lib/glp1";
 import { REPORT_DAYS, buildReport } from "@/lib/report";
@@ -51,7 +51,7 @@ export default function ReportPage() {
   const w = (kg: number) => formatWeight(kg, unit);
   const change = (kg: number) => (kg === 0 ? "no change" : `${kg < 0 ? "down" : "up"} ${w(Math.abs(kg))}`);
   const age = new Date().getFullYear() - profile.birthYear;
-  const planned = weeklyMinutes(profile.exerciseLevel);
+  const planned = weeklyMinutes(profile.exerciseLevel, isOlder(profile.birthYear, new Date().getFullYear()));
   const jab = injectionRecord(profile, today);
 
   return (
