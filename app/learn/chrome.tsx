@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/logo";
+import { LearnTabs } from "@/components/app-tabs";
 
 /** Header and footer shared by the public Learn pages. */
 export default function LearnChrome({
@@ -14,7 +15,7 @@ export default function LearnChrome({
     <>
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-5 py-5">
         <Link href="/"><Logo /></Link>
-        <Link href="/journal" className="text-sm font-semibold text-leaf underline-offset-4 hover:underline">
+        <Link href="/journal" className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm font-semibold text-leaf">
           Open my journal
         </Link>
       </header>
@@ -30,6 +31,7 @@ export default function LearnChrome({
           </p>
         </div>
       </footer>
+      <LearnTabs />
     </>
   );
 }
