@@ -6,7 +6,6 @@
   "backgroundColor": "#17568f",
   "server": {
     "url": "https://myweightlossjournal.com",
-    "appStartPath": "/journal",
     "errorPath": "offline.html"
   },
   "ios": {
