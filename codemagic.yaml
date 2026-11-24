@@ -40,7 +40,7 @@ workflows:
       node: 22
       java: 21
       android_signing:
-        - wlj_upload_key
+        - wlj_upload_ke
     scripts:
       - name: Install
         script: cd mobile && npm ci && npx cap sync android
@@ -57,7 +57,7 @@ workflows:
       node: 22
       java: 21
       android_signing:
-        - wlj_upload_key
+        - wlj_upload_ke
       groups:
         - google_play
     scripts:
