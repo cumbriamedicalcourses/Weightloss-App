@@ -1,22 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { JournalProvider, useJournal } from "@/lib/journal";
-import { Icon, type IconName } from "@/components/icons";
+import AppTabs from "@/components/app-tabs";
 import MembershipOffer from "@/components/membership-offer";
 import { PhoneStepsSync } from "@/components/steps-card";
 import { MembershipProvider, useMembership } from "@/lib/use-membership";
-
-const TABS: { href: string; label: string; icon: IconName }[] = [
-  { href: "/journal", label: "Today", icon: "today" },
-  { href: "/journal/plans", label: "Plans", icon: "plans" },
-  { href: "/journal/progress", label: "Progress", icon: "progress" },
-  { href: "/learn", label: "Learn", icon: "learn" },
-  { href: "/journal/profile", label: "Profile", icon: "profile" },
-];
 
 function Loading() {
   return (
@@ -64,7 +55,6 @@ function MembershipGate({ children }: { children: ReactNode }) {
 
 function Inner({ children }: { children: ReactNode }) {
   const { user, loading, preview } = useAuth();
-  const path = usePathname();
   const router = useRouter();
 
   useEffect(() => {
@@ -87,36 +77,7 @@ function Inner({ children }: { children: ReactNode }) {
           </ProfileGate>
           <PhoneStepsSync />
         </div>
-        <nav
-          aria-label="Journal sections"
-          className="fixed inset-x-0 bottom-0 border-t border-line bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur print:hidden"
-        >
-          <ul className="mx-auto flex max-w-xl">
-            {TABS.map((t) => {
-              const active = path === t.href;
-              return (
-                <li key={t.href} className="flex-1">
-                  <Link
-                    href={t.href}
-                    aria-current={active ? "page" : undefined}
-                    className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-semibold ${
-                      active ? "text-leaf" : "text-muted hover:text-ink"
-                    }`}
-                  >
-                    <span
-                      className={`flex h-7 w-12 items-center justify-center rounded-full transition ${
-                        active ? "bg-leaf-soft" : ""
-                      }`}
-                    >
-                      <Icon name={t.icon} className="size-[22px]" strokeWidth={active ? 2.1 : 1.8} />
-                    </span>
-                    {t.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+        <AppTabs />
       </JournalProvider>
     </MembershipProvider>
   );
