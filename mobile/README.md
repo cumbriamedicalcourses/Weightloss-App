@@ -61,7 +61,7 @@ npx cap open android
   App Store Connect API key (App Manager role) added to Codemagic as an integration named
   `Weight Loss Journal`.
 - **Google Play**: app `com.myweightlossjournal.app`. Upload key added to Codemagic as
-  `wlj_upload_ke`, and a Google Cloud service account JSON in a Codemagic variable group
+  `wlj_android`, and a Google Cloud service account JSON in a Codemagic variable group
   `google_play` as `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS`. The first `.aab` is uploaded by
   hand in Play Console. Fill in the Health Connect permissions declaration (steps only, for
   showing daily steps against a walking goal).
