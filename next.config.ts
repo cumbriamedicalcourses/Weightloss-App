@@ -8,6 +8,18 @@ const nextConfig: NextConfig = {
     // build, so use a single build worker.
     cpus: 1,
   },
+  async redirects() {
+    return [
+      {
+        // The phone apps open the site's homepage. Send them straight to the
+        // journal, so the app never shows the homepage with its prices.
+        source: "/",
+        has: [{ type: "header", key: "user-agent", value: ".*WeightLossJournalApp.*" }],
+        destination: "/journal",
+        permanent: false,
+      },
+    ];
+  },
   async rewrites() {
     if (!firebaseProject) return [];
     // Serve Firebase's sign-in helper pages from our own domain, so Google

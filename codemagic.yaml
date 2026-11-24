@@ -30,6 +30,45 @@ workflows:
         auth: integration
         submit_to_testflight: true
 
+  ios-sim-check:
+    # Runs the iPhone app on a virtual iPhone and saves what happens at start-up,
+    # to find the cause of a crash without a real phone. No signing needed.
+    name: iPhone app, start-up check on a virtual iPhone
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Install
+        script: cd mobile && npm ci && npx cap sync ios
+      - name: Build for the virtual iPhone
+        script: |
+          xcodebuild -project mobile/ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO build | tail -40
+      - name: Start the app and record what happens
+        script: |
+          set +e
+          mkdir -p sim-report
+          APP=$(find build/sim/Build/Products -name App.app -maxdepth 3 | head -1)
+          DEVICE=$(xcrun simctl list devices available | grep -E "iPhone 1[5-9]|iPhone 2" | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
+          echo "Device: $DEVICE  App: $APP" | tee sim-report/summary.txt
+          xcrun simctl boot "$DEVICE"; sleep 20
+          xcrun simctl install "$DEVICE" "$APP"
+          START=$(date "+%Y-%m-%d %H:%M:%S")
+          xcrun simctl launch --console-pty "$DEVICE" com.myweightlossjournal.app > sim-report/console.txt 2>&1 &
+          sleep 45
+          xcrun simctl spawn "$DEVICE" launchctl list | grep -i myweightloss >> sim-report/summary.txt || echo "APP IS NOT RUNNING after 45 seconds" >> sim-report/summary.txt
+          xcrun simctl spawn "$DEVICE" log show --start "$START" --style compact \
+            --predicate 'process == "App" OR eventMessage CONTAINS[c] "myweightlossjournal" OR eventMessage CONTAINS "App.app"' > sim-report/log.txt 2>&1
+          cp ~/Library/Logs/DiagnosticReports/*App* sim-report/ 2>/dev/null
+          xcrun simctl io "$DEVICE" screenshot sim-report/screen.png
+          cat sim-report/summary.txt; tail -60 sim-report/console.txt
+          cd sim-report && zip -r ../sim-report.zip . ; exit 0
+    artifacts:
+      - sim-report.zip
+
   android-first-build:
     # The very first upload to Google Play must be done by hand. This makes
     # the signed .aab to download from the build page and upload in Play Console.
