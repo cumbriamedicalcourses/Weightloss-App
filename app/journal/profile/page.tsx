@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
+import { useNativeApp } from "@/lib/native";
 import { WeightInput } from "@/components/weight-input";
 import {
   ACTIVITY_LABEL,
@@ -39,6 +40,7 @@ export default function ProfilePage() {
   const auth = useAuth();
   const router = useRouter();
   const isNew = !profile;
+  const native = useNativeApp();
   const year = new Date().getFullYear();
 
   const [unit, setUnit] = useState<WeightUnit>(profile?.weightUnit ?? "kg");
@@ -413,7 +415,7 @@ export default function ProfilePage() {
         <Link href="/journal/membership" className="card mt-10 flex items-center justify-between gap-3 p-4 transition hover:border-leaf">
           <span>
             <span className="block font-semibold text-ink">Membership</span>
-            <span className="block text-sm text-muted">Your plan, payments and cancelling</span>
+            <span className="block text-sm text-muted">{native ? "Your membership" : "Your plan, payments and cancelling"}</span>
           </span>
           <span aria-hidden className="text-xl text-leaf">›</span>
         </Link>

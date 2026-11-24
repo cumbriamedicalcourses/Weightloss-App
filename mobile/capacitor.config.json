@@ -1,0 +1,19 @@
+{
+  "appId": "com.myweightlossjournal.app",
+  "appName": "Weight Loss Journal",
+  "webDir": "www",
+  "appendUserAgent": "WeightLossJournalApp",
+  "backgroundColor": "#17568f",
+  "server": {
+    "url": "https://myweightlossjournal.com",
+    "appStartPath": "/journal",
+    "errorPath": "offline.html"
+  },
+  "ios": {
+    "contentInset": "never",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

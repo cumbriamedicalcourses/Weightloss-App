@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { JournalProvider, useJournal } from "@/lib/journal";
 import { Icon, type IconName } from "@/components/icons";
 import MembershipOffer from "@/components/membership-offer";
+import { PhoneStepsSync } from "@/components/steps-card";
 import { MembershipProvider, useMembership } from "@/lib/use-membership";
 
 const TABS: { href: string; label: string; icon: IconName }[] = [
@@ -84,6 +85,7 @@ function Inner({ children }: { children: ReactNode }) {
           <ProfileGate>
             <MembershipGate>{children}</MembershipGate>
           </ProfileGate>
+          <PhoneStepsSync />
         </div>
         <nav
           aria-label="Journal sections"
