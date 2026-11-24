@@ -1,7 +1,8 @@
-# Builds the phone apps whenever they change, to catch mistakes early.
+# Builds the Android app whenever the phone apps change, to catch mistakes early.
 # The Android build is a test copy (an .apk) that can be put straight on an
 # Android phone: open the run on GitHub and download "android-test-app".
-# Store builds are made by Codemagic instead (see codemagic.yaml).
+# The iPhone app is built by Codemagic, which has Macs (see codemagic.yaml).
+# Store builds of both apps are made there too.
 name: Phone app check
 
 on:
@@ -41,18 +42,3 @@ jobs:
           path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-  ios:
-    name: iPhone app compiles
-    runs-on: macos-15
-    timeout-minutes: 40
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install
-        working-directory: mobile
-        run: npm ci && npx cap sync ios
-      - name: Build for the simulator (no signing)
-        working-directory: mobile/ios/App
-        run: xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build | tail -40; exit ${PIPESTATUS[0]}

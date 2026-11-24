@@ -30,6 +30,25 @@ workflows:
         auth: integration
         submit_to_testflight: true
 
+  android-first-build:
+    # The very first upload to Google Play must be done by hand. This makes
+    # the signed .aab to download from the build page and upload in Play Console.
+    name: Android app, signed file only
+    instance_type: linux_x2
+    max_build_duration: 45
+    environment:
+      node: 22
+      java: 21
+      android_signing:
+        - wlj_upload_key
+    scripts:
+      - name: Install
+        script: cd mobile && npm ci && npx cap sync android
+      - name: Build
+        script: cd mobile/android && ./gradlew bundleRelease --no-daemon
+    artifacts:
+      - mobile/android/app/build/outputs/bundle/release/*.aab
+
   android-play:
     name: Android app to Google Play
     instance_type: linux_x2

@@ -39,7 +39,7 @@ that mentions prices or links to the checkout must check `useNativeApp()`.
 
 No Mac is needed. Two cloud services are set up:
 
-- **GitHub Actions** (`.github/workflows/phone-app-check.yml`) builds both apps on every
+- **GitHub Actions** (`.github/workflows/phone-app-check.yml`) builds the Android app on every
   pull request that touches `mobile/`. The Android run produces a test `.apk` that can be
   installed straight on an Android phone (download `android-test-app` from the run).
 - **Codemagic** (`codemagic.yaml`) makes the store builds: the iPhone app goes to
