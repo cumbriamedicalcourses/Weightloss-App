@@ -17,6 +17,7 @@ const BODY: Block[] = [
     "Your profile: sex, year of birth, height, weight, goal weight, activity level and chosen pace. These are used to work out your daily calorie target.",
     "Your journal: the food, drink and exercise you log, your water count, your weigh-ins, the foods you mark as favourites, and the meals and recipes you save, any step counts, fasting hours and body measurements you enter, and, if you choose to use it, the weight-loss injection you use and the dates you took it.",
     "Photos and descriptions of meals, only for the moment it takes to estimate them. They are not saved in your journal or on our servers.",
+    "Steps from Apple Health or Health Connect, only if you switch this on in the iPhone or Android app. The app reads your daily step total and nothing else, and saves it in your journal like a step count you type in. It never writes to Apple Health or Health Connect, and the information is never used for advertising, sold or shared. You can turn it off on the Today page or in your phone's settings at any time.",
     "Progress photos, if you add them, are kept only in the browser on your own device. They are never sent to us or to anyone else, and deleting your account on that device removes them.",
   ] },
   { p: "Information about your weight and what you eat is health information, which the law treats as especially sensitive. We hold it only because you choose to enter it, and you can remove it at any time." },
@@ -58,5 +59,5 @@ const BODY: Block[] = [
 ];
 
 export default function PrivacyPage() {
-  return <LegalPage title="Privacy policy" updated="23 November 2026" body={BODY} />;
+  return <LegalPage title="Privacy policy" updated="24 November 2026" body={BODY} />;
 }

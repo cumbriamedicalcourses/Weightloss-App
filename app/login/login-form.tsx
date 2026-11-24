@@ -5,12 +5,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { AuthProvider, authMessage, useAuth } from "@/lib/auth";
 import { Logo } from "@/components/logo";
+import { useNativeApp } from "@/lib/native";
 
 function Form() {
   const auth = useAuth();
   const router = useRouter();
   const params = useSearchParams();
-  const [mode, setMode] = useState<"signin" | "signup">(params.get("new") ? "signup" : "signin");
+  // The phone apps only sign in to existing accounts: Google blocks its sign-in
+  // inside apps like this one, and memberships are not sold in the apps.
+  const native = useNativeApp();
+  const [chosenMode, setMode] = useState<"signin" | "signup">(params.get("new") ? "signup" : "signin");
+  const mode = native ? "signin" : chosenMode;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -103,20 +108,28 @@ function Form() {
         </button>
       </form>
 
-      <button className="btn-quiet mt-3 w-full" disabled={busy} onClick={() => void run(auth.signInGoogle)}>
-        Continue with Google
-      </button>
+      {native ? (
+        <p className="mt-4 text-sm text-muted">
+          Signed up with Google? Choose Reset password with the same email to make a password for the app.
+        </p>
+      ) : (
+        <button className="btn-quiet mt-3 w-full" disabled={busy} onClick={() => void run(auth.signInGoogle)}>
+          Continue with Google
+        </button>
+      )}
 
-      <p className="mt-4 text-sm text-muted">
+      <p className={`mt-4 text-sm text-muted ${native ? "hidden" : ""}`}>
         By creating an account or continuing with Google you agree to our{" "}
         <Link href="/terms" className="font-semibold text-leaf underline-offset-4 hover:underline">terms</Link> and{" "}
         <Link href="/privacy" className="font-semibold text-leaf underline-offset-4 hover:underline">privacy policy</Link>.
       </p>
 
       <div className="mt-6 flex flex-wrap justify-between gap-3 text-sm">
-        <button className="font-semibold text-leaf underline-offset-4 hover:underline" onClick={() => { setMode(signup ? "signin" : "signup"); setError(""); }}>
-          {signup ? "I already have an account" : "Create an account"}
-        </button>
+        {native ? null : (
+          <button className="font-semibold text-leaf underline-offset-4 hover:underline" onClick={() => { setMode(signup ? "signin" : "signup"); setError(""); }}>
+            {signup ? "I already have an account" : "Create an account"}
+          </button>
+        )}
         {!signup ? (
           <button className="text-muted underline-offset-4 hover:underline" onClick={reset}>
             Reset password

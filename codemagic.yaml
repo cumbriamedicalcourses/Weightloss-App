@@ -1,0 +1,57 @@
+# Store builds of the phone apps, made in the cloud by Codemagic (codemagic.io).
+# No Mac is needed. Setup steps are in mobile/README.md.
+workflows:
+  ios-testflight:
+    name: iPhone app to TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: Weight Loss Journal
+    environment:
+      node: 22
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.myweightlossjournal.app
+    scripts:
+      - name: Install
+        script: cd mobile && npm ci && npx cap sync ios
+      - name: Build number
+        script: |
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/" mobile/ios/App/App.xcodeproj/project.pbxproj
+      - name: Signing
+        script: xcode-project use-profiles --project mobile/ios/App/App.xcodeproj
+      - name: Build
+        script: xcode-project build-ipa --project mobile/ios/App/App.xcodeproj --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+
+  android-play:
+    name: Android app to Google Play
+    instance_type: linux_x2
+    max_build_duration: 45
+    environment:
+      node: 22
+      java: 21
+      android_signing:
+        - wlj_upload_key
+      groups:
+        - google_play
+    scripts:
+      - name: Install
+        script: cd mobile && npm ci && npx cap sync android
+      - name: Build
+        script: cd mobile/android && ./gradlew bundleRelease --no-daemon
+    artifacts:
+      - mobile/android/app/build/outputs/bundle/release/*.aab
+    publishing:
+      google_play:
+        # Google needs the very first upload done by hand in Play Console;
+        # after that each build goes to internal testing automatically.
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true

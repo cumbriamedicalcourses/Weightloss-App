@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { GUARANTEE_DAYS, PLANS, TRIAL_DAYS, type Plan } from "@/lib/membership-shared";
 import { useMembership } from "@/lib/use-membership";
+import { useAuth } from "@/lib/auth";
+import { useNativeApp } from "@/lib/native";
 
 const INCLUDED: [IconName, string][] = [
   ["today", "Your daily journal with a personal calorie target"],
@@ -18,8 +20,36 @@ const INCLUDED: [IconName, string][] = [
 const longDate = (secs: number) =>
   new Date(secs * 1000).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
 
-/** The plans, the free week and the guarantee. Shown on the membership page and when the journal is locked. */
+/**
+ * Shown on the membership page and when the journal is locked. On the website
+ * it offers the plans; in the phone apps it only says the account has no
+ * membership, because the apps do not sell anything (see mobile/README.md).
+ */
 export default function MembershipOffer({ locked = false }: { locked?: boolean }) {
+  const native = useNativeApp();
+  return native ? <NoMembershipInApp /> : <PlansOffer locked={locked} />;
+}
+
+/** Neutral wording for the phone apps: no prices, no buttons or links to buy. */
+function NoMembershipInApp() {
+  const auth = useAuth();
+  return (
+    <section className="card p-5" aria-label="Membership">
+      <h1 className="font-display text-2xl text-ink">No active membership</h1>
+      <p className="mt-2 text-muted">
+        The account {auth.user?.email ? <strong className="text-ink">{auth.user.email}</strong> : "you signed in with"} doesn&apos;t
+        have an active membership, so the journal can&apos;t open. Memberships can&apos;t be bought in this app.
+      </p>
+      <p className="mt-2 text-muted">If you have a membership on another account, sign out and sign in with that one.</p>
+      <button type="button" className="btn-quiet mt-4 w-full" onClick={() => void auth.signOut()}>
+        Sign out
+      </button>
+    </section>
+  );
+}
+
+/** The plans, the free week and the guarantee. */
+function PlansOffer({ locked }: { locked: boolean }) {
   const { view, checkout, busy, error } = useMembership();
   const [plan, setPlan] = useState<Plan>("yearly");
   const trial = view?.trialAvailable ?? true;

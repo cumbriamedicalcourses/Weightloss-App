@@ -8,6 +8,7 @@ import { Icon } from "@/components/icons";
 import { GUARANTEE_DAYS, PLANS } from "@/lib/membership-shared";
 import { CONTACT_EMAIL } from "@/components/legal-page";
 import { useMembership } from "@/lib/use-membership";
+import { useNativeApp } from "@/lib/native";
 
 const longDate = (secs: number) =>
   new Date(secs * 1000).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
@@ -15,6 +16,8 @@ const longDate = (secs: number) =>
 function Status() {
   const { view, manage, busy, error, refresh } = useMembership();
   const welcome = useSearchParams().get("welcome") === "1";
+  // The phone apps show the membership's state only: no prices, payments or links to change it.
+  const native = useNativeApp();
 
   // Stripe confirms a new membership a moment after the payment page closes, so check again shortly.
   useEffect(() => {
@@ -51,7 +54,12 @@ function Status() {
   const plan = PLANS.find((p) => p.id === view.plan);
   const price = plan ? `${plan.price} ${plan.per}` : "your plan";
   let line: string;
-  if (view.status === "trialing" && view.trialEnd) {
+  if (native) {
+    if (view.status === "trialing" && view.trialEnd) line = `Your free trial runs until ${longDate(view.trialEnd)}.`;
+    else if (view.status === "past_due") line = "There is a problem with your membership.";
+    else if (view.cancelAtPeriodEnd && view.periodEnd) line = `Your membership stays open until ${longDate(view.periodEnd)}.`;
+    else line = "Your membership is active.";
+  } else if (view.status === "trialing" && view.trialEnd) {
     line = view.cancelAtPeriodEnd
       ? `Your free trial ends on ${longDate(view.trialEnd)}. You have cancelled, so you will not be charged.`
       : `Your free trial runs until ${longDate(view.trialEnd)}. After that it is ${price}.`;
@@ -65,7 +73,7 @@ function Status() {
 
   return (
     <>
-      {welcome ? (
+      {welcome && !native ? (
         <p className="mb-4 flex items-center gap-2 rounded-2xl bg-clay-soft px-4 py-3 font-semibold text-clay" role="status">
           <Icon name="check" strokeWidth={2.4} /> Welcome! Your membership has started.
         </p>
@@ -74,12 +82,15 @@ function Status() {
         <h1 className="font-display text-2xl text-ink">Membership</h1>
         <p className="mt-2 text-ink">{line}</p>
         {error ? <p className="mt-3 rounded-xl bg-clay-soft px-3.5 py-3 text-sm text-clay" role="alert">{error}</p> : null}
-        {view.canManage ? (
+        {native ? (
+          <p className="mt-4 text-sm text-muted">Membership can&apos;t be changed in this app.</p>
+        ) : null}
+        {view.canManage && !native ? (
           <button type="button" className="btn-quiet mt-4 w-full" disabled={busy} onClick={() => void manage()}>
             {busy ? "Opening…" : "Change plan, update card or cancel"}
           </button>
         ) : null}
-        <p className="mt-4 text-sm text-muted">
+        <p className={`mt-4 text-sm text-muted ${native ? "hidden" : ""}`}>
           {GUARANTEE_DAYS}-day money-back guarantee: ask within {GUARANTEE_DAYS} days of your first payment for a full refund
           {CONTACT_EMAIL ? (
             <>

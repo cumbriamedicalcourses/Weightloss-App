@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import NativeSetup from "@/components/native-setup";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://myweightlossjournal.com"),
@@ -21,7 +22,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en-GB" className="h-full antialiased">
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <NativeSetup />
+        {children}
+      </body>
     </html>
   );
 }

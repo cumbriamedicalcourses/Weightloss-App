@@ -72,3 +72,8 @@ dialog.sheet::backdrop {
     margin: 16mm;
   }
 }
+
+/* Inside the iPhone app the page runs edge to edge, so keep clear of the clock at the top. */
+.native-ios body {
+  padding-top: env(safe-area-inset-top);
+}
