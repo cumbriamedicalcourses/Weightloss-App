@@ -18,10 +18,6 @@ export default function NativeSetup() {
     if (!platform) return;
     const html = document.documentElement;
     html.classList.add("native-app", `native-${platform}`);
-    if (platform === "ios") {
-      const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
-      if (meta && !meta.content.includes("viewport-fit")) meta.content += ", viewport-fit=cover";
-    }
   }, []);
 
   useEffect(() => {
