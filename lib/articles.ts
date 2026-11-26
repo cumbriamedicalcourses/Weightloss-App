@@ -434,6 +434,7 @@ export const ARTICLES: Article[] = [
     summary: "You have reached your goal. How to raise your calories step by step and stay within a healthy range.",
     topic: "Staying on track",
     minutes: 5,
+    video: "https://iframe.mediadelivery.net/embed/818541/126a9dca-b2c2-4d8a-bb6d-82ecca5cac40",
     body: [
       { p: "Reaching your goal weight is a real achievement. It is also the start of a new stage. Many people regain weight in the months and years after a diet, not because they lack willpower, but because they stop the habits that got them there all at once. Keeping weight off is a skill, and like losing it, it can be learned." },
       { h: "Why weight comes back" },
@@ -476,6 +477,7 @@ export const ARTICLES: Article[] = [
     summary: "Why weight often returns after stopping, and the habits that help you keep what you have lost.",
     topic: "Your health",
     minutes: 5,
+    video: "https://iframe.mediadelivery.net/embed/818541/07614699-00be-48f4-a5a4-38d73839f291",
     body: [
       { p: "Weight-loss injections such as Wegovy (semaglutide) and Mounjaro (tirzepatide) can help people lose a lot of weight. They work mainly by reducing appetite, so you feel full sooner and think about food less. Many people will stop them at some point, because of cost, side effects, or because their course has come to an end." },
       { p: "This article gives general information to help you plan for that time. It is not medical advice. Always speak to the person who prescribes your injection before you stop or change it." },
@@ -523,6 +525,7 @@ export const ARTICLES: Article[] = [
     summary: "Why muscle matters while you lose weight, and simple exercises you can do at home.",
     topic: "Body and mind",
     minutes: 4,
+    video: "https://iframe.mediadelivery.net/embed/818541/8f15c84f-673e-46a3-b470-97f88bb0c272",
     body: [
       { p: "When you lose weight, you want to lose fat, not muscle. But without some help, part of what you lose can be muscle. Strength exercise is the signal that tells your body to keep it." },
       { h: "Why muscle matters" },
@@ -573,6 +576,7 @@ export const ARTICLES: Article[] = [
     summary: "People with support lose more weight and keep more of it off. How to ask for help and deal with unhelpful comments.",
     topic: "Staying on track",
     minutes: 4,
+    video: "https://iframe.mediadelivery.net/embed/818541/722d4eca-79a6-4bff-90da-fe0cc5b7fba3",
     body: [
       { p: "Losing weight can feel like a private project, but you do not have to do it alone. Research shows that people who have support from family, friends or a group tend to lose more weight and keep more of it off." },
       { h: "Tell someone" },
@@ -617,6 +621,7 @@ export const ARTICLES: Article[] = [
     summary: "Who should get advice before starting, the signs of an eating disorder, and where to get help.",
     topic: "Your health",
     minutes: 4,
+    video: "https://iframe.mediadelivery.net/embed/818541/ba1af625-f328-483a-9074-735b55f3ed14",
     body: [
       { p: "For most adults carrying extra weight, losing some of it is one of the best things they can do for their health. But for some people, now is not the right time to diet, or it is only safe with help from a health professional. Please read this before you start." },
       { h: "This journal is for adults" },
@@ -669,6 +674,7 @@ export const ARTICLES: Article[] = [
     summary: "The numbers your GP looks at, what they mean, and how losing weight improves them.",
     topic: "Your health",
     minutes: 5,
+    video: "https://iframe.mediadelivery.net/embed/818541/0e89d8fb-bb1e-490b-8e3b-32907afcc0fa",
     body: [
       { p: "Your weight is one number. Your GP will also look at others that show how your heart and body are coping. The good news is that losing even 5 to 10 per cent of your weight usually improves all of them." },
       { h: "Blood pressure" },
