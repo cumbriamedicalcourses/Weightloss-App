@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage, { CONTACT_EMAIL } from "@/components/legal-page";
 import type { Block } from "@/lib/articles";
-import { GUARANTEE_DAYS, PLANS, TRIAL_DAYS } from "@/lib/membership-shared";
+import { BOOK_TRIAL_DAYS, GUARANTEE_DAYS, PLANS, TRIAL_DAYS } from "@/lib/membership-shared";
 
 export const metadata: Metadata = {
   title: "Terms of use",
@@ -29,6 +29,7 @@ const BODY: Block[] = [
   { list: [
     `The journal needs a membership: ${PLANS.map((p) => `${p.price} ${p.per}`).join(" or ")}, or the equivalent shown at checkout in your currency. Prices include any VAT that applies.`,
     `New members get a ${TRIAL_DAYS}-day free trial. You give your card details to start it, and nothing is taken until the trial ends. If you cancel before then, you pay nothing. The free trial is offered once per person.`,
+    `If you own the Weight Loss Journal book and start your membership through the link or QR code in the book (myweightlossjournal.com/book), your free trial is ${BOOK_TRIAL_DAYS} days instead of ${TRIAL_DAYS}. Everything else above applies in the same way, and it replaces the standard trial rather than adding to it.`,
     "When the trial ends, your membership starts and renews automatically every month or year until you cancel. Payments are taken by our payment provider, Stripe, and we never see or keep your full card details.",
     "You can cancel at any time from the Membership page in your profile. Your membership then stays open until the end of the period you have paid for, and is not renewed.",
     `Money-back guarantee: if you are not happy, ask within ${GUARANTEE_DAYS} days of your first payment and we will refund that payment in full. To ask, ${contact}, using the email address on your account. This is on top of your legal rights.`,

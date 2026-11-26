@@ -3,6 +3,12 @@
 export type Plan = "monthly" | "yearly";
 
 export const TRIAL_DAYS = 7;
+/** Longer free trial for people who bought the paperback and came through the QR code on its cover (myweightlossjournal.com/book). */
+export const BOOK_TRIAL_DAYS = 30;
+
+export type Offer = "book";
+
+export const trialDaysFor = (offer?: Offer | null) => (offer === "book" ? BOOK_TRIAL_DAYS : TRIAL_DAYS);
 export const GUARANTEE_DAYS = 30;
 
 /** Prices as shown in the app. Checkout shows the real amount, in the visitor's currency where one is set up. */
