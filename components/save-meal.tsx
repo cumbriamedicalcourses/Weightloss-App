@@ -1,5 +1,6 @@
 "use client";
 
+import { sourceFields } from "@/lib/food-source";
 import { useState, type FormEvent } from "react";
 import { MAX_SAVED_MEALS, servingOf } from "@/lib/saved-meals";
 import { store } from "@/lib/store";
@@ -46,6 +47,7 @@ export default function SaveMeal({
         carbs: x.carbs,
         fat: x.fat,
         units: x.units,
+        ...sourceFields(x),
       })),
     };
     void store.setSavedMeals(uid, [meal, ...others]);

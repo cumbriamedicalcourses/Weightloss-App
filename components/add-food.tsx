@@ -6,6 +6,7 @@ import { useJournal } from "@/lib/journal";
 import { store } from "@/lib/store";
 import { addDays, dayKey } from "@/lib/dates";
 import { servingOf } from "@/lib/saved-meals";
+import { sourceFields, sourceTag, type FoodOrigin } from "@/lib/food-source";
 import type { Entry, EstimateItem, EstimateResult, Favourite, FoodResult, Macros, Meal, SavedMeal } from "@/lib/types";
 import BarcodeScanner from "./barcode-scanner";
 import Sheet from "./sheet";
@@ -101,6 +102,8 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
           fat: grams(i.fat),
           units: i.units,
           source,
+          origin: i.origin ?? ORIGIN_OF[source ?? "manual"],
+          ref: i.ref,
         }),
       ),
     );
@@ -166,6 +169,13 @@ export default function AddFood({ date, onClose }: { date: string; onClose: () =
 type Call = (path: string, init?: RequestInit) => Promise<unknown>;
 type Item = Favourite;
 
+/** The source a newly added food gets when the item does not already carry one. */
+const ORIGIN_OF: Partial<Record<NonNullable<Entry["source"]>, FoodOrigin>> = {
+  describe: "ai",
+  photo: "ai",
+  manual: "you",
+};
+
 /** Keeps a macro figure only when it is a real, non-negative number. */
 function grams(v: number | undefined) {
   return typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.round(v * 10) / 10 : undefined;
@@ -209,7 +219,7 @@ function RecentTab({
     const list: Item[] = [];
     for (const e of [...(recent ?? [])].sort((a, b) => b.createdAt - a.createdAt)) {
       if (e.kind !== "food") continue;
-      const item: Item = { name: e.name, calories: e.calories, portion: e.portion, protein: e.protein, carbs: e.carbs, fat: e.fat, units: e.units };
+      const item: Item = { name: e.name, calories: e.calories, portion: e.portion, protein: e.protein, carbs: e.carbs, fat: e.fat, units: e.units, ...sourceFields(e) };
       const key = itemKey(item);
       if (seen.has(key)) continue;
       seen.add(key);
@@ -406,6 +416,7 @@ function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void
         <div>
           <p className="font-semibold text-ink">{picked.name}</p>
           <p className="text-sm text-muted">{picked.kcalPer100g} kcal per 100 g</p>
+          <SourceNote food={picked} />
         </div>
         <div>
           <label className="label" htmlFor="grams">Amount in grams</label>
@@ -435,7 +446,7 @@ function SearchTab({ call, save }: { call: Call; save: (i: Item) => Promise<void
             type="button"
             className="btn flex-1"
             disabled={g <= 0}
-            onClick={() => void save({ name: picked.name, calories, portion: `${g} g`, ...macros })}
+            onClick={() => void save({ name: picked.name, calories, portion: `${g} g`, ...macros, ...searchSource(picked) })}
           >
             Add to journal
           </button>
@@ -755,5 +766,28 @@ function ManualTab({ save }: { save: (i: Item) => Promise<void> }) {
       </details>
       <button className="btn w-full" disabled={!name.trim() || !calories}>Add to journal</button>
     </form>
+  );
+}
+
+/** Search results come from USDA; barcode results from the product label on Open Food Facts. */
+function searchSource(food: FoodResult): Pick<Item, "origin" | "ref"> {
+  return food.id.startsWith("barcode-")
+    ? { origin: "label", ref: food.id.slice("barcode-".length) }
+    : { origin: "usda", ref: food.id };
+}
+
+function SourceNote({ food }: { food: FoodResult }) {
+  const { origin, ref } = searchSource(food);
+  const tag = sourceTag(origin, ref);
+  if (!tag) return null;
+  return (
+    <p className="mt-1 text-xs text-muted">
+      Source: {tag.title.replace(/^From the /, "the ")}.{" "}
+      {tag.href ? (
+        <a href={tag.href} target="_blank" rel="noopener noreferrer" className="underline hover:text-ink">
+          See the record
+        </a>
+      ) : null}
+    </p>
   );
 }

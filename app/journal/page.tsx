@@ -1,5 +1,6 @@
 "use client";
 
+import { originOf, sourceFields, sourceTag, type SourceTag } from "@/lib/food-source";
 import { nudgeFor, remindersOf } from "@/lib/reminders";
 import Link from "next/link";
 import { FastingToday } from "@/components/fasting-card";
@@ -63,14 +64,32 @@ function CalorieRing({ pct, left, over }: { pct: number; left: number; over: boo
   );
 }
 
+function SourceLabel({ tag }: { tag: SourceTag }) {
+  const cls = "text-xs text-muted";
+  return tag.href ? (
+    <a href={tag.href} target="_blank" rel="noopener noreferrer" title={tag.title} className={`${cls} underline decoration-dotted underline-offset-2 hover:text-ink`}>
+      {tag.label}
+    </a>
+  ) : (
+    <span title={tag.title} className={cls}>{tag.label}</span>
+  );
+}
+
 function Row({ entry, onDelete }: { entry: Entry; onDelete: () => void }) {
   const base = entry.kind === "exercise" ? (entry.minutes ? `${entry.minutes} minutes` : "") : entry.portion;
+  const tag = entry.kind === "food" ? sourceTag(originOf(entry), entry.ref) : null;
   const detail = entry.units ? [base, `${entry.units} ${entry.units === 1 ? "unit" : "units"}`].filter(Boolean).join(" · ") : base;
   return (
     <li className="flex items-center gap-3 border-b border-line py-3 last:border-b-0">
       <div className="min-w-0 flex-1">
         <p className="truncate text-ink">{entry.name}</p>
-        {detail ? <p className="text-sm text-muted">{detail}</p> : null}
+        {detail || tag ? (
+          <p className="text-sm text-muted">
+            {detail}
+            {detail && tag ? " · " : null}
+            {tag ? <SourceLabel tag={tag} /> : null}
+          </p>
+        ) : null}
       </div>
       <span className={`tabular-nums ${entry.kind === "exercise" ? "text-leaf" : "text-ink"}`}>
         {entry.kind === "exercise" ? "−" : ""}
@@ -157,7 +176,9 @@ export default function TodayPage() {
         protein: e.protein,
         carbs: e.carbs,
         fat: e.fat,
+        units: e.units,
         source: "copy",
+        ...sourceFields(e),
       });
     }
   }

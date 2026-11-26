@@ -1,3 +1,4 @@
+import { combinedOrigin } from "./food-source";
 import type { Favourite, SavedMeal } from "./types";
 
 export const MAX_SAVED_MEALS = 40;
@@ -21,6 +22,7 @@ export function servingOf(meal: SavedMeal): Favourite[] {
       carbs: share(sum(meal.items, "carbs")),
       fat: share(sum(meal.items, "fat")),
       units: share(sum(meal.items, "units")),
+      origin: combinedOrigin(meal.items),
     },
   ];
 }

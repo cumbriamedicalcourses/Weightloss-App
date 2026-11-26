@@ -122,6 +122,7 @@ export default function PlansPage() {
           carbs: i.carbs,
           fat: i.fat,
           source: "plan",
+          origin: "plan",
         });
       }
     }

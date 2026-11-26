@@ -26,6 +26,7 @@ export default function LearnChrome({
           <p className="mt-3">
             © {new Date().getFullYear()} My Weight Loss Journal ·{" "}
             <Link href="/learn" className="underline-offset-4 hover:underline">Learn</Link> ·{" "}
+            <Link href="/how-we-calculate" className="underline-offset-4 hover:underline">How we calculate</Link> ·{" "}
             <Link href="/privacy" className="underline-offset-4 hover:underline">Privacy</Link> ·{" "}
             <Link href="/terms" className="underline-offset-4 hover:underline">Terms</Link>
           </p>

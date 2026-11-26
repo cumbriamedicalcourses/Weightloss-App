@@ -17,6 +17,13 @@ export default function LearnPage() {
       <p className="mt-3 max-w-xl text-lg leading-relaxed text-muted">
         Short, practical guides to go with your journal, each with a short video. Each one takes a few minutes.
       </p>
+      <p className="mt-3 max-w-xl text-muted">
+        Wondering where the numbers come from?{" "}
+        <Link href="/how-we-calculate" className="font-semibold text-leaf underline-offset-4 hover:underline">
+          See how we calculate calories, with references
+        </Link>
+        .
+      </p>
       {TOPICS.map((topic) => {
         const list = ARTICLES.filter((a) => a.topic === topic);
         if (!list.length) return null;
