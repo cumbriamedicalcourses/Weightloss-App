@@ -7,7 +7,7 @@ import { Icon } from "@/components/icons";
 export const metadata: Metadata = {
   title: "Learn",
   description:
-    "Short, practical guides to losing weight: how it works, setting a goal, plateaus, eating out, emotional eating and sleep.",
+    "Short, practical guides to losing weight: how it works, setting a goal, plateaus, keeping weight off, coming off injections, strength exercise, emotional eating, sleep and your health.",
 };
 
 export default function LearnPage() {
@@ -15,7 +15,7 @@ export default function LearnPage() {
     <LearnChrome>
       <h1 className="mt-6 font-display text-4xl text-ink">Learn</h1>
       <p className="mt-3 max-w-xl text-lg leading-relaxed text-muted">
-        Short, practical guides to go with your journal, each with a short video. Each one takes a few minutes.
+        Short, practical guides to go with your journal, most with a short video. Each one takes a few minutes.
       </p>
       <p className="mt-3 max-w-xl text-muted">
         Wondering where the numbers come from?{" "}
