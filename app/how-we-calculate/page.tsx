@@ -34,6 +34,8 @@ const REFS: Ref[] = [
   { id: "ainsworth", text: "Ainsworth BE, Haskell WL, Herrmann SD, et al. 2011 Compendium of Physical Activities: a second update of codes and MET values. Medicine and Science in Sports and Exercise 2011;43(8):1575-1581.", href: "https://doi.org/10.1249/MSS.0b013e31821ece12" },
   { id: "herrmann", text: "Herrmann SD, Willis EA, Ainsworth BE, et al. 2024 Adult Compendium of Physical Activities: a third update of the energy costs of human activities. Journal of Sport and Health Science 2024;13(1):6-12.", href: "https://doi.org/10.1016/j.jshs.2023.10.010" },
   { id: "cmo", text: "UK Chief Medical Officers. UK Chief Medical Officers' Physical Activity Guidelines. Department of Health and Social Care, 2019.", href: "https://www.gov.uk/government/publications/physical-activity-guidelines-uk-chief-medical-officers-report" },
+  { id: "tudor-cadence", text: "Tudor-Locke C, Han H, Aguiar EJ, et al. How fast is fast enough? Walking cadence (steps/min) as a practical estimate of intensity in adults: a narrative review. British Journal of Sports Medicine 2018;52(12):776-788.", href: "https://doi.org/10.1136/bjsports-2017-097628" },
+  { id: "tudor-steps", text: "Tudor-Locke C, Bassett DR. How many steps/day are enough? Preliminary pedometer indices for public health. Sports Medicine 2004;34(1):1-8.", href: "https://doi.org/10.2165/00007256-200434010-00001" },
 ];
 
 const NUM = Object.fromEntries(REFS.map((r, i) => [r.id, i + 1]));
@@ -76,6 +78,7 @@ export default function HowWeCalculatePage() {
           <li><a href="#target" className="text-leaf hover:underline">Your daily calorie target</a></li>
           <li><a href="#safety" className="text-leaf hover:underline">Safety limits</a></li>
           <li><a href="#exercise" className="text-leaf hover:underline">Exercise and steps</a></li>
+          <li><a href="#deficit" className="text-leaf hover:underline">Your daily deficit</a></li>
           <li><a href="#limits" className="text-leaf hover:underline">How precise these figures are</a></li>
           <li><a href="#references" className="text-leaf hover:underline">References</a></li>
         </ul>
@@ -184,10 +187,40 @@ export default function HowWeCalculatePage() {
         <p className="mt-3">
           MET figures include the energy your body would use at rest anyway, so they slightly overstate the extra calories an
           activity burns. That is one reason the journal never adds exercise calories back to your food allowance: exercise
-          is a bonus on top of your plan. The exercise plans follow the UK Chief Medical Officers&rsquo; advice of 150 minutes
+          is a bonus on top of your plan. The daily deficit below counts only the extra burn. The exercise plans follow the UK Chief Medical Officers&rsquo; advice of 150 minutes
           of moderate activity a week plus strength work on two days.<Cite ids={["cmo"]} />
         </p>
-        <p className="mt-3">Steps are recorded to help you move more, but they are not turned into calories.</p>
+
+        <H2 id="deficit">Your daily deficit: food, exercise and steps</H2>
+        <p className="mt-3">
+          Near the bottom of the Today page, the journal adds up your calorie deficit for the day, for information only. Your
+          food target does not change because of it.
+        </p>
+        <ul className="mt-3 list-disc space-y-2 pl-6 marker:text-leaf">
+          <li>
+            <strong>From food:</strong> the energy you use on a usual day (from your target calculation above, before the
+            planned gap) minus what you have eaten.
+          </li>
+          <li>
+            <strong>From exercise:</strong> only the extra burn. We take away 1 MET, the energy your body uses at rest, so
+            the time you spent exercising is not counted twice. A 30 minute brisk walk for someone weighing 80 kg adds (
+            {walk} &minus; 1) &times; 80 &times; 0.5 = {Math.round((walk - 1) * 80 * 0.5)} kcal.
+          </li>
+          <li>
+            <strong>From steps:</strong> walking at about 100 steps a minute is moderate activity of about 3 METs.
+            <Cite ids={["tudor-cadence"]} /> Taking away the 1 MET used at rest, each step adds 2 &times; weight (kg)
+            &divide; 6,000 kcal, so 1,000 steps for someone weighing 80 kg is about 27 kcal. Your activity level already
+            allows for everyday walking, so only steps above a usual amount for that level are counted: 2,500 for mostly
+            sitting, 5,000 for lightly active, 7,500 for moderately active and 10,000 for very active, following the step
+            bands of Tudor-Locke and Bassett.<Cite ids={["tudor-steps"]} /> Steps taken during a walk or run you have
+            logged are also left out (about 100 steps a minute walking and 160 running), so they are not counted twice.
+          </li>
+        </ul>
+        <p className="mt-3">
+          The weekly total adds up the days with food logged in the last seven days, and divides by 7,700 kcal to give a rough
+          figure in kilograms of body fat.<Cite ids={["wishnofsky"]} /> A day with meals left out will look better than it
+          really was.
+        </p>
 
         <H2 id="limits">How precise these figures are</H2>
         <p className="mt-3">
