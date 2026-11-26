@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE}/learn`, priority: 0.8 },
     { url: `${SITE}/privacy`, priority: 0.2 },
     { url: `${SITE}/terms`, priority: 0.2 },
+    { url: `${SITE}/delete-account`, priority: 0.1 },
     ...ARTICLES.map((a) => ({ url: `${SITE}/learn/${a.slug}`, priority: 0.6 })),
   ];
 }
