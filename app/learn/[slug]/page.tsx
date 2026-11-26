@@ -69,6 +69,24 @@ export default async function ArticlePage({ params }: PageProps<"/learn/[slug]">
             ),
           )}
         </div>
+
+        {article.sources?.length ? (
+          <section className="mt-10 max-w-2xl border-t border-line pt-6">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-clay">Sources</h2>
+            <ol className="mt-3 list-decimal space-y-2 pl-6 text-sm text-muted marker:text-muted">
+              {article.sources.map((s) => (
+                <li key={s.text}>
+                  {s.text}{" "}
+                  {s.href ? (
+                    <a href={s.href} target="_blank" rel="noopener noreferrer" className="break-all text-leaf underline-offset-2 hover:underline">
+                      {s.href.replace(/^https:\/\//, "")}
+                    </a>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          </section>
+        ) : null}
       </article>
 
       <section className="card mt-10 p-6">
