@@ -1,3 +1,5 @@
+import type { FoodOrigin } from "./food-source";
+
 export type Sex = "female" | "male";
 export type WeightUnit = "kg" | "lb" | "st";
 /** How much planned exercise the person has chosen. "none" leaves the whole calorie gap to food. */
@@ -81,6 +83,10 @@ export interface Favourite extends Macros {
   portion?: string;
   /** Alcohol units, for alcoholic drinks. */
   units?: number;
+  /** Where the calories came from. */
+  origin?: FoodOrigin;
+  /** The record in that source: a USDA food id or a barcode. */
+  ref?: string;
 }
 
 export interface SavedMeal {
@@ -107,6 +113,10 @@ export interface Entry extends Macros {
   /** Alcohol units, for alcoholic drinks. */
   units?: number;
   source?: "search" | "photo" | "manual" | "recent" | "copy" | "plan" | "describe" | "saved" | "drink";
+  /** Where the calories came from, kept even when the food is logged again. */
+  origin?: FoodOrigin;
+  /** The record in that source: a USDA food id or a barcode. */
+  ref?: string;
   createdAt: number;
 }
 

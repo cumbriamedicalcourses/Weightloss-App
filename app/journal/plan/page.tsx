@@ -129,7 +129,10 @@ export default function PlanPage() {
           </dl>
           <p className="mt-3 text-sm text-muted">
             Your exercise is a bonus on top and does not change your food target. These figures are estimates, and
-            people differ, so your weekly weigh-in is the real guide.
+            people differ, so your weekly weigh-in is the real guide.{" "}
+            <Link href="/how-we-calculate#target" className="font-semibold text-leaf underline-offset-4 hover:underline">
+              How we calculate this
+            </Link>
           </p>
         </section>
       ) : null}

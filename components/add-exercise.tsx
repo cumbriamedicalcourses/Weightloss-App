@@ -85,7 +85,7 @@ export default function AddExercise({ date, onClose }: { date: string; onClose: 
           <p className="mt-1.5 text-sm text-muted">
             {isOther
               ? "Enter the figure from your watch or machine."
-              : "Worked out from your weight. Change it if your watch or machine gives a different figure."}
+              : `Worked out from your weight and the activity's MET value (${met}) in the Compendium of Physical Activities. Change it if your watch or machine gives a different figure.`}
           </p>
         </div>
         <button className="btn w-full" disabled={!name || calories <= 0}>Add to journal</button>
