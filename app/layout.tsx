@@ -17,6 +17,8 @@ export const viewport: Viewport = {
   themeColor: "#eaf4fb",
   width: "device-width",
   initialScale: 1,
+  // Lets the iPhone app fill the screen; the safe-area padding keeps content clear of the clock and home bar.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

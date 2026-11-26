@@ -77,3 +77,14 @@ dialog.sheet::backdrop {
 .native-ios body {
   padding-top: env(safe-area-inset-top);
 }
+
+/* A solid strip behind the clock, so text scrolling up never runs under it. */
+.native-ios body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: env(safe-area-inset-top);
+  background: var(--color-paper, #eaf4fb);
+  z-index: 50;
+  pointer-events: none;
+}
