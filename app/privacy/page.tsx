@@ -48,7 +48,7 @@ const BODY: Block[] = [
   { list: [
     "See and correct your information at any time in the app.",
     "Download a copy: Profile, then Download my data.",
-    "Delete everything: Profile, then Delete my account and data.",
+    "Delete everything: Profile, then Delete my account and data. Full steps, and how to ask us to do it if you cannot sign in, are at myweightlossjournal.com/delete-account.",
     "Withdraw your consent by deleting your account.",
     "Complain to the Information Commissioner's Office (ico.org.uk) if you are unhappy with how your information is handled.",
   ] },
