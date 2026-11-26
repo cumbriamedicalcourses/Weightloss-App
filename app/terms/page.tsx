@@ -31,9 +31,16 @@ const BODY: Block[] = [
     `New members get a ${TRIAL_DAYS}-day free trial. You give your card details to start it, and nothing is taken until the trial ends. If you cancel before then, you pay nothing. The free trial is offered once per person.`,
     "When the trial ends, your membership starts and renews automatically every month or year until you cancel. Payments are taken by our payment provider, Stripe, and we never see or keep your full card details.",
     "You can cancel at any time from the Membership page in your profile. Your membership then stays open until the end of the period you have paid for, and is not renewed.",
-    `Money-back guarantee: if you are not happy, ask within ${GUARANTEE_DAYS} days of your first payment and we will refund that payment in full. This is on top of your legal rights.`,
+    `Money-back guarantee: if you are not happy, ask within ${GUARANTEE_DAYS} days of your first payment and we will refund that payment in full. To ask, ${contact}, using the email address on your account. This is on top of your legal rights.`,
     "If we change the price, we will tell you by email at least 30 days before it applies to you, and you can cancel before then.",
     "If a payment fails, we will try again for a short time. If it still fails, the journal is locked until the membership is paid. Your entries are kept and you can still download or delete them.",
+    "Deleting your account does not cancel your membership by itself. Please cancel it first on the Membership page.",
+  ] },
+  { h: "The iPhone and Android apps" },
+  { list: [
+    "The apps are free to download and use the same account and membership as the website. Memberships are bought on our website only and cannot be bought in the apps.",
+    "If you allow it, the apps read your daily step count from Apple Health or Health Connect. They read nothing else and never write to them. You can turn this off at any time.",
+    "Apple and Google are not part of these terms and are not responsible for the journal, your membership or any support. Any questions go to us.",
   ] },
   { h: "Fair use" },
   { list: [
@@ -55,5 +62,5 @@ const BODY: Block[] = [
 ];
 
 export default function TermsPage() {
-  return <LegalPage title="Terms of use" updated="23 November 2026" body={BODY} />;
+  return <LegalPage title="Terms of use" updated="26 November 2026" body={BODY} />;
 }
