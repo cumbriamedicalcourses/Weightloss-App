@@ -5,6 +5,7 @@ import { nudgeFor, remindersOf } from "@/lib/reminders";
 import Link from "next/link";
 import { FastingToday } from "@/components/fasting-card";
 import { StepsToday } from "@/components/steps-card";
+import DeficitCard from "@/components/deficit-card";
 import { useEffect, useState } from "react";
 import AddExercise from "@/components/add-exercise";
 import AddDrink from "@/components/add-drink";
@@ -482,6 +483,14 @@ export default function TodayPage() {
           </ul>
         </section>
       ) : null}
+
+      <DeficitCard
+        profile={profile}
+        entries={[...recent.filter((e) => e.date !== date), ...list]}
+        date={date}
+        weightKg={currentKg}
+        isToday={isToday}
+      />
 
       {sheet === "food" ? <AddFood date={date} onClose={() => setSheet(null)} /> : null}
       {saving ? (
