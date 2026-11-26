@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Icon, type IconName } from "@/components/icons";
-import { GUARANTEE_DAYS, PLANS, TRIAL_DAYS, type Plan } from "@/lib/membership-shared";
+import { GUARANTEE_DAYS, PLANS, trialDaysFor, type Plan } from "@/lib/membership-shared";
+import { hasBookOffer } from "@/lib/book-offer";
 import { useMembership } from "@/lib/use-membership";
 import { useAuth } from "@/lib/auth";
 import { useNativeApp } from "@/lib/native";
@@ -53,22 +54,25 @@ function PlansOffer({ locked }: { locked: boolean }) {
   const { view, checkout, busy, error } = useMembership();
   const [plan, setPlan] = useState<Plan>("yearly");
   const trial = view?.trialAvailable ?? true;
+  // Book owners who came through myweightlossjournal.com/book get a longer trial.
+  const [book] = useState(hasBookOffer);
+  const trialDays = trialDaysFor(book ? "book" : null);
   // The first payment date, worked out once when the page opens.
   const [firstCharge] = useState(() =>
-    new Date(Date.now() + TRIAL_DAYS * 86_400_000).toLocaleDateString(undefined, { day: "numeric", month: "long" }),
+    new Date(Date.now() + trialDays * 86_400_000).toLocaleDateString(undefined, { day: "numeric", month: "long" }),
   );
 
   return (
     <section aria-label="Membership plans">
       <p className="text-sm font-semibold uppercase tracking-[0.14em] text-clay">
-        {locked ? "Your plan is ready" : "Membership"}
+        {book && trial ? "Book owners' offer" : locked ? "Your plan is ready" : "Membership"}
       </p>
       <h1 className="mt-2 font-display text-3xl text-ink">
-        {trial ? `Start your ${TRIAL_DAYS}-day free trial` : "Choose your membership"}
+        {trial ? `Start your ${trialDays}-day free trial` : "Choose your membership"}
       </h1>
       <p className="mt-2 text-muted">
         {trial
-          ? `Everything in the journal, free for ${TRIAL_DAYS} days. Cancel any time before ${firstCharge} and you pay nothing.`
+          ? `Everything in the journal, free for ${trialDays} days. Cancel any time before ${firstCharge} and you pay nothing.`
           : "Everything in the journal, for one simple price."}
       </p>
 

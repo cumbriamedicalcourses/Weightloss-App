@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "./auth";
 import type { MembershipView, Plan } from "./membership-shared";
+import { hasBookOffer } from "./book-offer";
 
 interface State {
   view: MembershipView | null;
@@ -76,7 +77,7 @@ export function MembershipProvider({ children }: { children: ReactNode }) {
     error,
     busy,
     refresh: () => setTick((t) => t + 1),
-    checkout: (plan) => go("/api/membership/checkout", { plan }),
+    checkout: (plan) => go("/api/membership/checkout", hasBookOffer() ? { plan, offer: "book" } : { plan }),
     manage: () => go("/api/membership/portal"),
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

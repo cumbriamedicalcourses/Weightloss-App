@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { admin } from "@/lib/admin";
 import { getMembership, priceFor, siteUrl, stripe } from "@/lib/membership";
-import { TRIAL_DAYS, type Plan } from "@/lib/membership-shared";
+import { trialDaysFor, type Plan } from "@/lib/membership-shared";
 import { verifyRequest } from "@/lib/verify-token";
 
 /**
  * Starts Stripe Checkout for the chosen plan. The card is taken at the start
- * and the first payment is on day 8, unless the person has had a free week before.
+ * and the first payment comes when the free trial ends (7 days, or 30 for book
+ * owners), unless the person has had a free trial before.
  */
 export async function POST(req: Request) {
   const uid = await verifyRequest(req);
@@ -14,9 +15,11 @@ export async function POST(req: Request) {
 
   const s = stripe();
   const a = admin();
-  const body = (await req.json().catch(() => ({}))) as { plan?: Plan };
+  const body = (await req.json().catch(() => ({}))) as { plan?: Plan; offer?: string };
   const plan: Plan = body.plan === "yearly" ? "yearly" : "monthly";
   const price = priceFor(plan);
+  // Book owners get a longer free trial. Still only one free trial per person.
+  const trialDays = trialDaysFor(body.offer === "book" ? "book" : null);
   if (!s || !a || !price) {
     return NextResponse.json({ error: "Payments are not set up yet. Please try again later." }, { status: 503 });
   }
@@ -31,7 +34,8 @@ export async function POST(req: Request) {
       ...(m.customerId ? { customer: m.customerId } : { customer_email: user.email ?? undefined }),
       subscription_data: {
         metadata: { uid },
-        ...(m.trialUsed ? {} : { trial_period_days: TRIAL_DAYS }),
+        ...(m.trialUsed ? {} : { trial_period_days: trialDays }),
+        ...(body.offer === "book" ? { metadata: { uid, offer: "book" } } : {}),
       },
       payment_method_collection: "always",
       allow_promotion_codes: true,
